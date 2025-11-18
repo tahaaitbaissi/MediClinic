@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.DashboardController"
+      spacing="20" styleClass="form-container">
+
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <Label text="📊 Tableau de Bord" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="🔄 Actualiser" styleClass="btn-primary" onAction="#handleRefreshDashboard"/>
+    </HBox>
+
+    <!-- Statistiques Principales -->
+    <HBox spacing="15">
+        <VBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="👥" styleClass="stats-icon"/>
+            <Label fx:id="totalPatientsLabel" text="156" styleClass="stats-number"/>
+            <Label text="Patients Totaux" styleClass="stats-label"/>
+        </VBox>
+
+        <VBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="📅" styleClass="stats-icon"/>
+            <Label fx:id="todayAppointmentsLabel" text="12" styleClass="stats-number"/>
+            <Label text="RDV Aujourd'hui" styleClass="stats-label"/>
+        </VBox>
+
+        <VBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="💰" styleClass="stats-icon"/>
+            <Label fx:id="monthlyRevenueLabel" text="8,450 €" styleClass="stats-number"/>
+            <Label text="Revenu Mensuel" styleClass="stats-label"/>
+        </VBox>
+
+        <VBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="👨‍⚕️" styleClass="stats-icon"/>
+            <Label fx:id="activeDoctorsLabel" text="5" styleClass="stats-number"/>
+            <Label text="Médecins Actifs" styleClass="stats-label"/>
+        </VBox>
+    </HBox>
+
+    <!-- Graphiques -->
+    <HBox spacing="15" VBox.vgrow="ALWAYS">
+        <VBox styleClass="card" spacing="15" HBox.hgrow="ALWAYS">
+            <Label text="📈 Rendez-vous Hebdomadaires" styleClass="subtitle"/>
+            <BarChart fx:id="appointmentsChart" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                <xAxis>
+                    <CategoryAxis label="Jours"/>
+                </xAxis>
+                <yAxis>
+                    <NumberAxis label="Nombre de RDV"/>
+                </yAxis>
+            </BarChart>
+        </VBox>
+
+        <VBox styleClass="card" spacing="15" HBox.hgrow="ALWAYS">
+            <Label text="⚡ Actions Rapides" styleClass="subtitle"/>
+            <VBox spacing="10">
+                <Button text="➕ Nouveau Patient" styleClass="btn-success" onAction="#handleQuickPatient"
+                        HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button text="📅 Planifier RDV" styleClass="btn-primary" onAction="#handleQuickAppointment"
+                        HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button text="💰 Créer Facture" styleClass="btn-warning"
+                        HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button text="📊 Voir Rapports" styleClass="btn-primary"
+                        HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            </VBox>
+        </VBox>
+    </HBox>
+
+    <!-- Dernières Activités -->
+    <VBox styleClass="card" spacing="15">
+        <Label text="🕐 Dernières Activités" styleClass="subtitle"/>
+        <TableView styleClass="table-view" prefHeight="200">
+            <columns>
+                <TableColumn text="Heure" prefWidth="100"/>
+                <TableColumn text="Action" prefWidth="200"/>
+                <TableColumn text="Détails" prefWidth="300"/>
+                <TableColumn text="Utilisateur" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </VBox>
+
+</VBox>

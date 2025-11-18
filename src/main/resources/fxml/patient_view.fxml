@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.PatientController"
+      spacing="20" styleClass="form-container">
+
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <Label text="👥 Gestion des Patients" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="+ Nouveau Patient" styleClass="btn-primary" onAction="#showAddPatientForm"/>
+    </HBox>
+
+    <!-- Barre de Recherche -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <TextField fx:id="searchField" promptText="Rechercher un patient..." styleClass="text-field" HBox.hgrow="ALWAYS"/>
+        <ComboBox fx:id="filterCombo" promptText="Filtrer par" styleClass="combo-box"/>
+        <Button text="🔍 Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
+    </HBox>
+
+    <!-- Statistiques Patients -->
+    <HBox spacing="15">
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="👥" styleClass="stats-icon"/>
+            <VBox>
+                <Label text="156" styleClass="stats-number"/>
+                <Label text="Patients Totaux" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="📅" styleClass="stats-icon"/>
+            <VBox>
+                <Label text="12" styleClass="stats-number"/>
+                <Label text="Nouveaux Ce Mois" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="✅" styleClass="stats-icon"/>
+            <VBox>
+                <Label text="143" styleClass="stats-number"/>
+                <Label text="Patients Actifs" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="🎂" styleClass="stats-icon"/>
+            <VBox>
+                <Label text="3" styleClass="stats-number"/>
+                <Label text="Anniversaires" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+    </HBox>
+
+    <!-- Tableau des Patients -->
+    <TableView fx:id="patientTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
+            <TableColumn fx:id="colNomComplet" text="Nom Complet" prefWidth="200"/>
+            <TableColumn fx:id="colEmail" text="Email" prefWidth="200"/>
+            <TableColumn fx:id="colTelephone" text="Téléphone" prefWidth="150"/>
+            <TableColumn fx:id="colDateNaissance" text="Date Naissance" prefWidth="120"/>
+        </columns>
+    </TableView>
+
+    <!-- Pagination -->
+    <HBox spacing="15" alignment="CENTER">
+        <Button text="◀◀" styleClass="btn-warning"/>
+        <Label text="Page 1 sur 8" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+        <Button text="▶▶" styleClass="btn-warning"/>
+        <Label text="156 patients" style="-fx-text-fill: #7f8c8d;"/>
+    </HBox>
+
+</VBox>
