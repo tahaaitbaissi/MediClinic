@@ -26,13 +26,11 @@
     <!-- Tableau des Médecins -->
     <TableView fx:id="doctorTable" styleClass="table-view" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="ID" prefWidth="80"/>
-            <TableColumn text="Nom Complet" prefWidth="200"/>
-            <TableColumn text="Spécialité" prefWidth="150"/>
-            <TableColumn text="Email" prefWidth="200"/>
-            <TableColumn text="Téléphone" prefWidth="150"/>
-            <TableColumn text="Statut" prefWidth="100"/>
-            <TableColumn text="Actions" prefWidth="150"/>
+            <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
+            <TableColumn fx:id="colNomComplet" text="Nom Complet" prefWidth="200"/>
+            <TableColumn fx:id="colSpecialite" text="Spécialité" prefWidth="150"/>
+            <TableColumn fx:id="colEmail" text="Email" prefWidth="200"/>
+            <TableColumn fx:id="colTelephone" text="Téléphone" prefWidth="150"/>
         </columns>
     </TableView>
 

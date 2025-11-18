@@ -64,12 +64,12 @@
     <!-- Tableau des Rendez-vous -->
     <TableView fx:id="appointmentTable" styleClass="table-view" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="Heure" prefWidth="100"/>
-            <TableColumn text="Patient" prefWidth="200"/>
-            <TableColumn text="Médecin" prefWidth="150"/>
-            <TableColumn text="Type" prefWidth="120"/>
-            <TableColumn text="Statut" prefWidth="100"/>
-            <TableColumn text="Actions" prefWidth="150"/>
+            <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
+            <TableColumn fx:id="colTime" text="Date/Heure" prefWidth="180"/>
+            <TableColumn fx:id="colPatient" text="Patient" prefWidth="180"/>
+            <TableColumn fx:id="colDoctor" text="Médecin" prefWidth="150"/>
+            <TableColumn fx:id="colMotif" text="Motif" prefWidth="180"/>
+            <TableColumn fx:id="colStatus" text="Statut" prefWidth="100"/>
         </columns>
     </TableView>
 

@@ -2,10 +2,12 @@ package com.mediclinic.controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import com.mediclinic.model.Patient;
 import com.mediclinic.service.PatientService;
@@ -196,7 +198,7 @@ public class PatientController implements Initializable {
             java.util.Optional<Patient> result = dialog.showAndWait();
             result.ifPresent(patient -> {
                 try {
-                    patientService.save(patient);
+                    patientService.createPatient(patient);
                     loadPatients();
                     showAlert("Succès", "Patient ajouté avec succès!", Alert.AlertType.INFORMATION);
                 } catch (Exception e) {
@@ -222,7 +224,7 @@ public class PatientController implements Initializable {
         java.util.Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                patientService.delete(patient);
+                patientService.deletePatient(patient.getId());
                 loadPatients();
                 showAlert("Succès", "Patient supprimé avec succès!", Alert.AlertType.INFORMATION);
             } catch (Exception e) {

@@ -1,14 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="CONTROLLER_NAME"
-            prefHeight="400.0" prefWidth="600.0">
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.BillingController"
+      spacing="20" styleClass="form-container">
 
-</AnchorPane>
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <Label text="💰 Gestion de la Facturation" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="+ Nouvelle Facture" styleClass="btn-primary" onAction="#handleNewInvoice"/>
+    </HBox>
+
+    <!-- Filtres et Recherche -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <DatePicker fx:id="startDatePicker" promptText="Date début" styleClass="text-field"/>
+        <DatePicker fx:id="endDatePicker" promptText="Date fin" styleClass="text-field"/>
+        <ComboBox fx:id="statusCombo" promptText="Statut" styleClass="combo-box"/>
+        <TextField fx:id="searchField" promptText="Rechercher..." styleClass="text-field" HBox.hgrow="ALWAYS"/>
+        <Button text="🔍 Rechercher" styleClass="btn-primary" onAction="#handleSearchInvoices"/>
+    </HBox>
+
+    <!-- Statistiques Financières -->
+    <HBox spacing="15">
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="💰" styleClass="stats-icon"/>
+            <VBox>
+                <Label fx:id="totalRevenueLabel" text="0 €" styleClass="stats-number"/>
+                <Label text="Revenu Total" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="✅" styleClass="stats-icon"/>
+            <VBox>
+                <Label fx:id="paidInvoicesLabel" text="0" styleClass="stats-number"/>
+                <Label text="Factures Payées" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="⏰" styleClass="stats-icon"/>
+            <VBox>
+                <Label fx:id="unpaidInvoicesLabel" text="0" styleClass="stats-number"/>
+                <Label text="En Attente" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="📊" styleClass="stats-icon"/>
+            <VBox>
+                <Label fx:id="averageInvoiceLabel" text="0 €" styleClass="stats-number"/>
+                <Label text="Montant Moyen" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+    </HBox>
+
+    <!-- Tableau des Factures -->
+    <TableView fx:id="invoiceTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="N°" prefWidth="80"/>
+            <TableColumn fx:id="colDate" text="Date" prefWidth="120"/>
+            <TableColumn fx:id="colPatient" text="Patient" prefWidth="200"/>
+            <TableColumn fx:id="colAmount" text="Montant" prefWidth="120"/>
+            <TableColumn fx:id="colStatus" text="Statut" prefWidth="120"/>
+            <TableColumn fx:id="colPaymentType" text="Type Paiement" prefWidth="150"/>
+        </columns>
+    </TableView>
+
+    <!-- Actions -->
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Button text="📊 Rapport Financier" styleClass="btn-success" onAction="#handleGenerateReport"/>
+        <Button text="📤 Exporter" styleClass="btn-warning" onAction="#handleExportFinancial"/>
+    </HBox>
+
+</VBox>
