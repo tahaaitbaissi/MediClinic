@@ -1,27 +1,30 @@
 package com.mediclinic.dao;
 
+import com.mediclinic.model.Facture;
 import com.mediclinic.model.Patient;
 import com.mediclinic.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import java.time.LocalDate;
 import java.util.List;
 
-public class PatientDAO extends AbstractDAO<Patient, Long> {
 
-    public PatientDAO() {
+public class FactureDAO extends AbstractDAO<Facture, Long> {
+
+    public FactureDAO() {
         super();
     }
 
     /**
-     * Recherche les patients par nom ou prénom (partiel).
+     * Récupère toutes les factures d'un patient.
      */
-    public List<Patient> searchByName(String terme) {
+    public List<Facture> findByPatient(Patient patient) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            String hql = "FROM Patient p WHERE p.nom LIKE :terme OR p.prenom LIKE :terme";
-            List<Patient> results = session.createQuery(hql, Patient.class)
-                    .setParameter("terme", "%" + terme + "%")
+            String hql = "FROM Facture f WHERE f.patient = :patient ORDER BY f.dateFacturation DESC";
+            List<Facture> results = session.createQuery(hql, Facture.class)
+                    .setParameter("patient", patient)
                     .list();
             tx.commit();
             return results;
@@ -33,18 +36,17 @@ public class PatientDAO extends AbstractDAO<Patient, Long> {
     }
 
     /**
-     * Recherche un patient par son email (doit être unique).
+     * Récupère les factures impayées.
      */
-    public Patient findByEmail(String email) {
+    public List<Facture> findUnpaid() {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            String hql = "FROM Patient p WHERE p.email = :email";
-            Patient result = session.createQuery(hql, Patient.class)
-                    .setParameter("email", email)
-                    .uniqueResult();
+            String hql = "FROM Facture f WHERE f.estPayee = false ORDER BY f.dateFacturation ASC";
+            List<Facture> results = session.createQuery(hql, Facture.class)
+                    .list();
             tx.commit();
-            return result;
+            return results;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             e.printStackTrace();
