@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.DoctorController"
+      spacing="20" styleClass="form-container">
+
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <Label text="👨‍⚕️ Gestion des Médecins" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="+ Nouveau Médecin" styleClass="btn-primary" onAction="#handleAddDoctor"/>
+    </HBox>
+
+    <!-- Barre de Recherche -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <TextField fx:id="searchField" promptText="Rechercher un médecin..." styleClass="text-field" HBox.hgrow="ALWAYS"/>
+        <ComboBox fx:id="specialtyCombo" promptText="Spécialité" styleClass="combo-box"/>
+        <Button text="🔍 Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
+        <Button text="📊 Exporter" styleClass="btn-success" onAction="#handleExportDoctors"/>
+    </HBox>
+
+    <!-- Tableau des Médecins -->
+    <TableView fx:id="doctorTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="ID" prefWidth="80"/>
+            <TableColumn text="Nom Complet" prefWidth="200"/>
+            <TableColumn text="Spécialité" prefWidth="150"/>
+            <TableColumn text="Email" prefWidth="200"/>
+            <TableColumn text="Téléphone" prefWidth="150"/>
+            <TableColumn text="Statut" prefWidth="100"/>
+            <TableColumn text="Actions" prefWidth="150"/>
+        </columns>
+    </TableView>
+
+</VBox>

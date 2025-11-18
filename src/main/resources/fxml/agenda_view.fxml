@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.AgendaController"
+      spacing="20" styleClass="form-container">
+
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <Label text="📅 Agenda des Rendez-vous" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="+ Nouveau Rendez-vous" styleClass="btn-primary" onAction="#handleNewAppointment"/>
+    </HBox>
+
+    <!-- Filtres et Recherche -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <DatePicker fx:id="startDatePicker" promptText="Date de début" styleClass="text-field"/>
+        <DatePicker fx:id="endDatePicker" promptText="Date de fin" styleClass="text-field"/>
+        <ComboBox fx:id="doctorCombo" promptText="Médecin" styleClass="combo-box"/>
+        <TextField fx:id="searchField" promptText="Rechercher..." styleClass="text-field"/>
+        <Button text="🔍 Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
+        <Button text="🔄 Actualiser" styleClass="btn-warning" onAction="#handleRefresh"/>
+    </HBox>
+
+    <!-- Statistiques Rapides -->
+    <HBox spacing="15">
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="📋" styleClass="stats-icon"/>
+            <VBox>
+                <Label text="12" styleClass="stats-number"/>
+                <Label text="RDV Aujourd'hui" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="⏰" styleClass="stats-icon"/>
+            <VBox>
+                <Label text="3" styleClass="stats-number"/>
+                <Label text="En Attente" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="✅" styleClass="stats-icon"/>
+            <VBox>
+                <Label text="8" styleClass="stats-number"/>
+                <Label text="Terminés" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+
+        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
+            <Label text="❌" styleClass="stats-icon"/>
+            <VBox>
+                <Label text="1" styleClass="stats-number"/>
+                <Label text="Annulés" styleClass="stats-label"/>
+            </VBox>
+        </HBox>
+    </HBox>
+
+    <!-- Tableau des Rendez-vous -->
+    <TableView fx:id="appointmentTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Heure" prefWidth="100"/>
+            <TableColumn text="Patient" prefWidth="200"/>
+            <TableColumn text="Médecin" prefWidth="150"/>
+            <TableColumn text="Type" prefWidth="120"/>
+            <TableColumn text="Statut" prefWidth="100"/>
+            <TableColumn text="Actions" prefWidth="150"/>
+        </columns>
+    </TableView>
+
+    <!-- Actions Rapides -->
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Button text="📋 Liste d'Attente" styleClass="btn-warning" onAction="#handleWaitingList"/>
+        <Button text="📊 Statistiques" styleClass="btn-success" onAction="#handleStatistics"/>
+        <Button text="📄 Rapport Quotidien" styleClass="btn-primary" onAction="#handleDailyReport"/>
+    </HBox>
+
+</VBox>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mediclinic.controller.MainController"
+            stylesheets="@../css/style.css"
+            styleClass="background">
+
+    <top>
+        <VBox>
+            <!-- Header -->
+            <HBox styleClass="container" spacing="20" alignment="CENTER_LEFT">
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="🏥" style="-fx-font-size: 32;"/>
+                    <VBox>
+                        <Label text="MediClinic" styleClass="title"/>
+                        <Label text="Gestion Médicale Complète" style="-fx-text-fill: #7f8c8d; -fx-font-size: 14;"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Label text="👨‍⚕️ Dr. Martin" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <Button text="Déconnexion" styleClass="btn-danger"/>
+                </HBox>
+            </HBox>
+
+            <!-- Menu Navigation -->
+            <HBox styleClass="container" spacing="0">
+                <HBox spacing="0">
+                    <Button text="📊 Tableau de Bord" styleClass="sidebar-button"
+                            onAction="#showDashboard" fx:id="dashboardBtn"/>
+                    <Button text="👥 Patients" styleClass="sidebar-button"
+                            onAction="#showPatients" fx:id="patientsBtn"/>
+                    <Button text="📅 Agenda" styleClass="sidebar-button"
+                            onAction="#showAgenda" fx:id="agendaBtn"/>
+                    <Button text="👨‍⚕️ Médecins" styleClass="sidebar-button"
+                            onAction="#showDoctors" fx:id="doctorsBtn"/>
+                    <Button text="💰 Facturation" styleClass="sidebar-button"
+                            onAction="#showBilling" fx:id="billingBtn"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <StackPane fx:id="contentArea" styleClass="container">
+            <!-- Le contenu dynamique sera chargé ici -->
+            <VBox alignment="CENTER" spacing="20">
+                <Label text="🏥 Bienvenue dans MediClinic" styleClass="title"/>
+                <Label text="Sélectionnez une section dans le menu ci-dessus"
+                       style="-fx-text-fill: #7f8c8d; -fx-font-size: 16;"/>
+            </VBox>
+        </StackPane>
+    </center>
+
+    <bottom>
+        <HBox styleClass="container" alignment="CENTER">
+            <Label text="© 2024 MediClinic - Système de Gestion Médicale"
+                   style="-fx-text-fill: #7f8c8d; -fx-font-size: 12;"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
