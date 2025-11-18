@@ -11,7 +11,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Initialisation de Hibernate
+        // Initialisation de Hibernate -1
         HibernateUtil.getSessionFactory();
 
         // Chargement de l'interface principale
