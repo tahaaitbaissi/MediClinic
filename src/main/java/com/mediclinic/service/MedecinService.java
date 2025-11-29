@@ -25,9 +25,32 @@ public class MedecinService {
     public Medecin saveMedecin(Medecin medecin) {
         // En théorie, on pourrait valider l'unicité de l'email ici
         // Mais nous laissons le DAO/DB gérer la contrainte UNIQUE.
+        return medecinDAO.save(medecin);
+    }
 
-        medecinDAO.save(medecin);
-        return medecin;
+    /**
+     * Met à jour un médecin existant par son ID.
+     * Utilise l'ID pour éviter les problèmes d'entités détachées.
+     */
+    public Medecin updateMedecin(Long medecinId, String nom, String prenom, 
+                                  SpecialiteMedecin specialite, String email, String telephone) {
+        if (medecinId == null) {
+            throw new IllegalArgumentException("L'ID du médecin est requis.");
+        }
+        
+        Medecin existingMedecin = medecinDAO.findById(medecinId);
+        if (existingMedecin == null) {
+            throw new IllegalArgumentException("Médecin non trouvé avec l'ID: " + medecinId);
+        }
+        
+        // Mettre à jour les champs
+        existingMedecin.setNom(nom);
+        existingMedecin.setPrenom(prenom);
+        existingMedecin.setSpecialite(specialite);
+        existingMedecin.setEmail(email);
+        existingMedecin.setTelephone(telephone);
+        
+        return medecinDAO.save(existingMedecin);
     }
 
     /**

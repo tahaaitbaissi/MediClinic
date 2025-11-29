@@ -11,16 +11,16 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Initialisation de Hibernate -1
+        // Initialisation de Hibernate
         HibernateUtil.getSessionFactory();
 
-        // Chargement de l'interface principale
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/main_view.fxml"));
+        // Chargement de la page de connexion
+        Parent root = FXMLLoader.load(getClass().getResource("/fxml/login_view.fxml"));
 
-        primaryStage.setTitle("MediClinic - Gestion Medicale");
-        primaryStage.setScene(new Scene(root, 1200, 700));
-        primaryStage.setMinWidth(1000);
-        primaryStage.setMinHeight(600);
+        primaryStage.setTitle("MediClinic - Connexion");
+        primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.setMinWidth(600);
+        primaryStage.setMinHeight(500);
         primaryStage.show();
     }
 

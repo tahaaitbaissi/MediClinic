@@ -45,7 +45,8 @@ public class ConsultationService {
         }
 
         // 2. Trouver le Dossier Médical correspondant au Patient
-        DossierMedical dossier = patient.getDossierMedical();
+        // Charger le dossier séparément pour éviter les problèmes de lazy loading
+        DossierMedical dossier = dossierMedicalDAO.findByPatientId(patient.getId());
 
         if (dossier == null) {
             // Dans un scénario réel, le Dossier est créé avec le Patient. Si non, il faut le créer ici.
@@ -57,14 +58,12 @@ public class ConsultationService {
         consultation.setDateConsultation(LocalDateTime.now());
         consultation.setRendezVous(rdv);
         consultation.setDossierMedical(dossier);
+        
+        // Note: Pas besoin d'appeler dossier.addConsultation() car cela accéderait
+        // à la collection lazy-loaded. La relation est établie via setDossierMedical().
 
-        // 4. Utiliser la méthode addConsultation pour maintenir la relation bidirectionnelle
-        dossier.addConsultation(consultation);
-
-        // 5. Sauvegarde de la Consultation (ajoute au dossier grâce à la relation)
-        consultationDAO.save(consultation);
-
-        return consultation;
+        // 4. Sauvegarde de la Consultation
+        return consultationDAO.save(consultation);
     }
 
     /**

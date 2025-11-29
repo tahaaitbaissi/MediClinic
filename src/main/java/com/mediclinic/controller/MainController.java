@@ -59,11 +59,27 @@ public class MainController {
 
     private void loadView(String fxmlFile) {
         try {
-            VBox view = FXMLLoader.load(getClass().getResource(fxmlFile));
+            // Vérifier que la ressource existe
+            var resourceUrl = getClass().getResource(fxmlFile);
+            if (resourceUrl == null) {
+                System.err.println("ERREUR: La ressource FXML est introuvable: " + fxmlFile);
+                System.err.println("Vérifiez que le fichier existe dans src/main/resources" + fxmlFile);
+                showAlert("Erreur de chargement", 
+                    "La vue n'a pas pu être chargée.\nFichier introuvable: " + fxmlFile + 
+                    "\n\nAssurez-vous que les ressources sont compilées correctement.", 
+                    Alert.AlertType.ERROR);
+                return;
+            }
+            
+            System.out.println("Chargement de la vue: " + fxmlFile + " depuis " + resourceUrl);
+            VBox view = FXMLLoader.load(resourceUrl);
             contentArea.getChildren().setAll(view);
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de charger la vue: " + fxmlFile, Alert.AlertType.ERROR);
+            showAlert("Erreur", "Impossible de charger la vue: " + fxmlFile + "\n\nDétails: " + e.getMessage(), Alert.AlertType.ERROR);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur inattendue", "Une erreur s'est produite lors du chargement de la vue.\n\nDétails: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 

@@ -129,10 +129,16 @@ public class BillingController implements Initializable {
                     setGraphic(null);
                 } else {
                     Facture facture = getTableView().getItems().get(getIndex());
-                    if (facture != null && facture.isEstPayee()) {
-                        payBtn.setDisable(true);
+                    HBox buttons = new HBox(5);
+                    buttons.getChildren().add(viewBtn);
+                    
+                    // Afficher le bouton payer uniquement si la facture n'est pas payée
+                    if (facture != null && !facture.isEstPayee()) {
+                        payBtn.setDisable(false);
+                        buttons.getChildren().add(payBtn);
                     }
-                    HBox buttons = new HBox(5, viewBtn, payBtn, printBtn);
+                    
+                    buttons.getChildren().add(printBtn);
                     setGraphic(buttons);
                 }
             }
@@ -162,32 +168,61 @@ public class BillingController implements Initializable {
 
     private void loadInvoices() {
         try {
-            // Load all unpaid invoices as a starting point
-            List<Facture> unpaidInvoices = facturationService.getUnpaidFactures();
-            invoiceList = FXCollections.observableArrayList(unpaidInvoices);
+            List<Facture> allInvoices = facturationService.getAllFactures();
+            invoiceList = FXCollections.observableArrayList(allInvoices);
             invoiceTable.setItems(invoiceList);
+            System.out.println("Factures chargées: " + allInvoices.size());
         } catch (Exception e) {
+            e.printStackTrace();
             showAlert("Erreur", "Erreur lors du chargement des factures: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     private void filterInvoices() {
-        // In a real implementation, we would filter based on dates and status
-        loadInvoices();
+        try {
+            List<Facture> allInvoices = facturationService.getAllFactures();
+            List<Facture> filtered = allInvoices.stream()
+                .filter(facture -> {
+                    String selectedStatus = statusCombo.getValue();
+                    if (selectedStatus != null && !selectedStatus.equals("Tous les statuts")) {
+                        if (selectedStatus.equals("Payée") && !facture.isEstPayee()) return false;
+                        if (selectedStatus.equals("En attente") && facture.isEstPayee()) return false;
+                    }
+                    LocalDate startDate = startDatePicker != null ? startDatePicker.getValue() : null;
+                    if (startDate != null && facture.getDateFacturation() != null) {
+                        if (facture.getDateFacturation().isBefore(startDate)) return false;
+                    }
+                    LocalDate endDate = endDatePicker != null ? endDatePicker.getValue() : null;
+                    if (endDate != null && facture.getDateFacturation() != null) {
+                        if (facture.getDateFacturation().isAfter(endDate)) return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+            invoiceList = FXCollections.observableArrayList(filtered);
+            invoiceTable.setItems(invoiceList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur lors du filtrage: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     private void updateStatistics() {
         try {
-            List<Facture> unpaid = facturationService.getUnpaidFactures();
+            List<Facture> allInvoices = facturationService.getAllFactures();
             
             BigDecimal totalRevenue = BigDecimal.ZERO;
             int paidCount = 0;
-            int unpaidCount = unpaid.size();
+            int unpaidCount = 0;
             
-            for (Facture f : invoiceList) {
+            for (Facture f : allInvoices) {
                 if (f.isEstPayee()) {
                     paidCount++;
-                    totalRevenue = totalRevenue.add(f.getMontantTotal());
+                    if (f.getMontantTotal() != null) {
+                        totalRevenue = totalRevenue.add(f.getMontantTotal());
+                    }
+                } else {
+                    unpaidCount++;
                 }
             }
             
@@ -195,10 +230,13 @@ public class BillingController implements Initializable {
             paidInvoicesLabel.setText(String.valueOf(paidCount));
             unpaidInvoicesLabel.setText(String.valueOf(unpaidCount));
             
-            BigDecimal average = paidCount > 0 ? totalRevenue.divide(BigDecimal.valueOf(paidCount), 2, BigDecimal.ROUND_HALF_UP) : BigDecimal.ZERO;
+            BigDecimal average = paidCount > 0 
+                ? totalRevenue.divide(BigDecimal.valueOf(paidCount), 2, java.math.RoundingMode.HALF_UP) 
+                : BigDecimal.ZERO;
             averageInvoiceLabel.setText(average + " €");
             
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("Error updating statistics: " + e.getMessage());
         }
     }
@@ -272,22 +310,31 @@ public class BillingController implements Initializable {
             dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
             dialog.setResultConverter(dialogButton -> {
-                if (dialogButton == saveButtonType && patientCombo.getValue() != null && !lignes.isEmpty()) {
-                    return null; // We'll handle creation in the ifPresent below
+                if (dialogButton == saveButtonType) {
+                    // Retourner un marqueur non-null pour indiquer que l'utilisateur veut sauvegarder
+                    return new Facture(); // Marqueur
                 }
                 return null;
             });
 
             dialog.showAndWait().ifPresent(result -> {
-                if (patientCombo.getValue() != null && !lignes.isEmpty()) {
-                    try {
-                        facturationService.creerFacture(patientCombo.getValue().getId(), new ArrayList<>(lignes));
-                        loadInvoices();
-                        updateStatistics();
-                        showAlert("Succès", "Facture créée avec succès!", Alert.AlertType.INFORMATION);
-                    } catch (Exception ex) {
-                        showAlert("Erreur", "Erreur lors de la création: " + ex.getMessage(), Alert.AlertType.ERROR);
-                    }
+                // Vérifier que le patient est sélectionné et qu'il y a des lignes
+                if (patientCombo.getValue() == null) {
+                    showAlert("Erreur", "Veuillez sélectionner un patient.", Alert.AlertType.ERROR);
+                    return;
+                }
+                if (lignes.isEmpty()) {
+                    showAlert("Erreur", "Veuillez ajouter au moins une ligne de facturation.", Alert.AlertType.ERROR);
+                    return;
+                }
+                
+                try {
+                    facturationService.creerFacture(patientCombo.getValue().getId(), new ArrayList<>(lignes));
+                    loadInvoices();
+                    updateStatistics();
+                    showAlert("Succès", "Facture créée avec succès!", Alert.AlertType.INFORMATION);
+                } catch (Exception ex) {
+                    showAlert("Erreur", "Erreur lors de la création: " + ex.getMessage(), Alert.AlertType.ERROR);
                 }
             });
 

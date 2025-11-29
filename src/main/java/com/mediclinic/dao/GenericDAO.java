@@ -7,7 +7,7 @@ import java.util.List;
 public interface GenericDAO<T, ID> {
 
     // Crée ou met à jour l'entité
-    void save(T entity);
+    T save(T entity);
 
     // Recherche par clé primaire
     T findById(ID id);

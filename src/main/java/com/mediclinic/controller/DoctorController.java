@@ -281,21 +281,28 @@ public class DoctorController implements Initializable {
             ButtonType saveButtonType = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
             dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
+            ButtonType saveBtn = saveButtonType;
+            Long medecinId = medecin.getId();
+            
             dialog.setResultConverter(dialogButton -> {
-                if (dialogButton == saveButtonType) {
-                    medecin.setNom(nomField.getText());
-                    medecin.setPrenom(prenomField.getText());
-                    medecin.setSpecialite(specialiteCombo.getValue());
-                    medecin.setEmail(emailField.getText());
-                    medecin.setTelephone(telephoneField.getText());
+                if (dialogButton == saveBtn) {
+                    // Retourner un marqueur pour indiquer que l'utilisateur veut sauvegarder
                     return medecin;
                 }
                 return null;
             });
 
-            dialog.showAndWait().ifPresent(updatedMedecin -> {
+            dialog.showAndWait().ifPresent(result -> {
                 try {
-                    medecinService.saveMedecin(updatedMedecin);
+                    // Utiliser la méthode ID-based pour éviter les entités détachées
+                    medecinService.updateMedecin(
+                        medecinId,
+                        nomField.getText(),
+                        prenomField.getText(),
+                        specialiteCombo.getValue(),
+                        emailField.getText(),
+                        telephoneField.getText()
+                    );
                     loadDoctors();
                     showAlert("Succès", "Médecin modifié avec succès!", Alert.AlertType.INFORMATION);
                 } catch (Exception e) {

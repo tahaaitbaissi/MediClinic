@@ -60,27 +60,32 @@ public class FacturationService {
         facture.setPatient(patient);
         facture.setDateFacturation(LocalDate.now());
 
-        // 5. Liaison et Calcul des Lignes en utilisant les méthodes du modèle
+        // 5. Liaison des Lignes à la Facture
         for (LigneFacture ligne : lignes) {
-            facture.addLigne(ligne); // Utilise la méthode du modèle qui gère la relation bidirectionnelle
+            ligne.setFacture(facture);
+            facture.getLignes().add(ligne);
         }
 
-        // 6. Calcul du montant total en utilisant la méthode du modèle
+        // 6. Calcul du montant total
         facture.calculerMontantTotal();
 
         // 7. Sauvegarde (Hibernate gère les Lignes via Cascade.ALL)
-        factureDAO.save(facture);
-        return facture;
+        return factureDAO.save(facture);
     }
 
     /**
      * Marque une facture comme payée et enregistre le type de paiement.
+     * Utilise l'ID pour charger et sauvegarder correctement l'entité.
      */
     public Facture marquerCommePayee(Long factureId, TypePaiement typePaiement) {
+        if (factureId == null) {
+            throw new IllegalArgumentException("L'ID de la facture est requis.");
+        }
+        
         Facture facture = factureDAO.findById(factureId);
 
         if (facture == null) {
-            throw new IllegalArgumentException("Facture introuvable.");
+            throw new IllegalArgumentException("Facture introuvable avec l'ID: " + factureId);
         }
 
         if (facture.isEstPayee()) {
@@ -90,8 +95,7 @@ public class FacturationService {
         facture.setEstPayee(true);
         facture.setTypePaiement(typePaiement);
 
-        factureDAO.save(facture);
-        return facture;
+        return factureDAO.save(facture);
     }
 
     // --- Méthodes de Recherche ---
@@ -105,6 +109,11 @@ public class FacturationService {
     }
 
     public List<Facture> getUnpaidFactures() {
-        return factureDAO.findUnpaid();
+        // Utiliser la méthode avec eager fetch pour l'UI
+        return factureDAO.findUnpaidWithDetails();
+    }
+
+    public List<Facture> getAllFactures() {
+        return factureDAO.findAllWithDetails();
     }
 }

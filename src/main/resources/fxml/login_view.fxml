@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.LoginController"
+      stylesheets="@../css/style.css"
+      styleClass="background"
+      alignment="CENTER"
+      spacing="0"
+      prefWidth="800" prefHeight="600">
+
+    <!-- Login Card -->
+    <VBox styleClass="card" alignment="CENTER" spacing="20" maxWidth="400">
+        <padding>
+            <Insets top="40" right="40" bottom="40" left="40"/>
+        </padding>
+
+        <!-- Logo and Title -->
+        <VBox alignment="CENTER" spacing="5">
+            <Label text="🏥" style="-fx-font-size: 48;"/>
+            <Label text="MediClinic" styleClass="title" style="-fx-font-size: 28;"/>
+            <Label text="Gestion Médicale" style="-fx-text-fill: #7f8c8d; -fx-font-size: 14;"/>
+        </VBox>
+
+        <!-- Form Title -->
+        <Label fx:id="formTitle" text="Connexion" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+        <!-- Error Message -->
+        <Label fx:id="errorLabel" text="" style="-fx-text-fill: #e74c3c; -fx-font-size: 12;" wrapText="true"/>
+
+        <!-- Username Field -->
+        <VBox spacing="5" alignment="CENTER_LEFT">
+            <Label text="Nom d'utilisateur" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="usernameField" promptText="Entrez votre nom d'utilisateur" prefWidth="300"/>
+        </VBox>
+
+        <!-- Password Field -->
+        <VBox spacing="5" alignment="CENTER_LEFT">
+            <Label text="Mot de passe" style="-fx-font-weight: bold;"/>
+            <PasswordField fx:id="passwordField" promptText="Entrez votre mot de passe" prefWidth="300"/>
+        </VBox>
+
+        <!-- Confirm Password Field (Register mode only) -->
+        <VBox fx:id="confirmPasswordBox" spacing="5" alignment="CENTER_LEFT" visible="false" managed="false">
+            <Label text="Confirmer le mot de passe" style="-fx-font-weight: bold;"/>
+            <PasswordField fx:id="confirmPasswordField" promptText="Confirmez votre mot de passe" prefWidth="300"/>
+        </VBox>
+
+        <!-- Login Button -->
+        <Button fx:id="loginBtn" text="Se connecter" styleClass="btn-primary" 
+                prefWidth="300" prefHeight="40" onAction="#handleLogin"/>
+
+        <!-- Register Button (hidden by default) -->
+        <Button fx:id="registerBtn" text="Créer le compte" styleClass="btn-success" 
+                prefWidth="300" prefHeight="40" onAction="#handleRegister"
+                visible="false" managed="false"/>
+
+        <!-- Toggle Link -->
+        <HBox alignment="CENTER" spacing="5">
+            <Label fx:id="toggleLabel" text="Pas encore de compte?"/>
+            <Hyperlink fx:id="toggleLink" text="Créer un compte" onAction="#toggleMode"/>
+        </HBox>
+
+    </VBox>
+
+</VBox>
+

@@ -1,14 +1,8 @@
 package com.mediclinic.util;
 
+import com.mediclinic.model.*;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import com.mediclinic.model.Patient;
-import com.mediclinic.model.Medecin;
-import com.mediclinic.model.RendezVous;
-import com.mediclinic.model.DossierMedical;
-import com.mediclinic.model.Consultation;
-import com.mediclinic.model.Facture;
-import com.mediclinic.model.LigneFacture;
 
 public class HibernateUtil {
 
@@ -20,8 +14,7 @@ public class HibernateUtil {
             Configuration configuration = new Configuration();
             configuration.configure("hibernate.cfg.xml");
 
-            // --- Enregistrement des Entités (Crucial!) ---
-            // Le fichier XML NE liste PAS les entités, nous le faisons ici pour plus de simplicité.
+            // Enregistrement des Entités
             configuration.addAnnotatedClass(Patient.class);
             configuration.addAnnotatedClass(Medecin.class);
             configuration.addAnnotatedClass(RendezVous.class);
@@ -29,9 +22,9 @@ public class HibernateUtil {
             configuration.addAnnotatedClass(Consultation.class);
             configuration.addAnnotatedClass(Facture.class);
             configuration.addAnnotatedClass(LigneFacture.class);
+            configuration.addAnnotatedClass(User.class);
 
             // Les Enums n'ont pas besoin d'être ajoutées explicitement
-
             return configuration.buildSessionFactory();
 
         } catch (Throwable ex) {

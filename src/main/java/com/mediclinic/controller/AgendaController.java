@@ -2,7 +2,6 @@ package com.mediclinic.controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
@@ -131,7 +130,24 @@ public class AgendaController implements Initializable {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    HBox buttons = new HBox(5, viewBtn, confirmBtn, completeBtn, cancelBtn);
+                    RendezVous rdv = getTableView().getItems().get(getIndex());
+                    RendezVousStatus status = rdv.getStatus();
+                    
+                    // Toujours afficher le bouton voir
+                    HBox buttons = new HBox(5);
+                    buttons.getChildren().add(viewBtn);
+                    
+                    // Afficher les boutons selon le statut actuel
+                    // PLANIFIE → peut confirmer ou annuler
+                    // CONFIRME → peut terminer ou annuler
+                    // TERMINE, ANNULE → aucune action (statuts finaux)
+                    if (status == RendezVousStatus.PLANIFIE) {
+                        buttons.getChildren().addAll(confirmBtn, cancelBtn);
+                    } else if (status == RendezVousStatus.CONFIRME) {
+                        buttons.getChildren().addAll(completeBtn, cancelBtn);
+                    }
+                    // Pour TERMINE et ANNULE, seul le bouton voir est affiché
+                    
                     setGraphic(buttons);
                 }
             }
@@ -167,18 +183,58 @@ public class AgendaController implements Initializable {
 
     private void loadAppointments() {
         try {
-            // For now, load all appointments
-            // In a real scenario, we'd filter by date range
-            appointmentList = FXCollections.observableArrayList();
+            // Charger tous les rendez-vous depuis la base de données
+            List<RendezVous> allAppointments = rendezVousService.findAll();
+            appointmentList = FXCollections.observableArrayList(allAppointments);
             appointmentTable.setItems(appointmentList);
         } catch (Exception e) {
+            e.printStackTrace();
             showAlert("Erreur", "Erreur lors du chargement des rendez-vous: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     private void filterAppointments() {
-        // TODO: Implement filtering based on selected doctor and date range
-        loadAppointments();
+        try {
+            // Recharger tous les rendez-vous
+            List<RendezVous> allAppointments = rendezVousService.findAll();
+            
+            // Appliquer les filtres
+            List<RendezVous> filtered = allAppointments.stream()
+                .filter(rdv -> {
+                    // Filtre par médecin
+                    String selectedDoctor = doctorCombo.getValue();
+                    if (selectedDoctor != null && !selectedDoctor.equals("Tous les médecins")) {
+                        if (rdv.getMedecin() == null || !rdv.getMedecin().getNomComplet().equals(selectedDoctor)) {
+                            return false;
+                        }
+                    }
+                    
+                    // Filtre par date de début
+                    LocalDate startDate = startDatePicker.getValue();
+                    if (startDate != null && rdv.getDateHeureDebut() != null) {
+                        if (rdv.getDateHeureDebut().toLocalDate().isBefore(startDate)) {
+                            return false;
+                        }
+                    }
+                    
+                    // Filtre par date de fin
+                    LocalDate endDate = endDatePicker.getValue();
+                    if (endDate != null && rdv.getDateHeureDebut() != null) {
+                        if (rdv.getDateHeureDebut().toLocalDate().isAfter(endDate)) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                })
+                .collect(Collectors.toList());
+            
+            appointmentList = FXCollections.observableArrayList(filtered);
+            appointmentTable.setItems(appointmentList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur lors du filtrage des rendez-vous: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     @FXML
@@ -306,7 +362,7 @@ public class AgendaController implements Initializable {
     }
 
     private void changeStatus(RendezVous rdv, RendezVousStatus newStatus) {
-        if (rdv == null) return;
+        if (rdv == null || rdv.getId() == null) return;
         
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirmation");
@@ -316,8 +372,8 @@ public class AgendaController implements Initializable {
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    rdv.setStatus(newStatus);
-                    // Save through service would be better
+                    // Utiliser la nouvelle méthode avec ID pour éviter les entités détachées
+                    rendezVousService.updateStatus(rdv.getId(), newStatus);
                     loadAppointments();
                     showAlert("Succès", "Statut mis à jour avec succès!", Alert.AlertType.INFORMATION);
                 } catch (Exception e) {

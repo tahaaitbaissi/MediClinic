@@ -63,20 +63,20 @@ public class PatientService {
             throw new IllegalArgumentException("L'email est déjà utilisé par un autre patient.");
         }
 
-        // 1. Sauvegarde du Patient
-        patientDAO.save(patient);
+        // 1. Sauvegarder le patient d'abord pour obtenir l'ID généré
+        Patient savedPatient = patientDAO.save(patient);
 
-        // 2. Création automatique du Dossier Médical (One-to-One)
+        // 2. Création automatique du Dossier Médical avec le patient managé
         DossierMedical dossier = new DossierMedical();
-        dossier.setPatient(patient);
+        dossier.setPatient(savedPatient);
         
-        // Sauvegarde du Dossier
-        dossierMedicalDAO.save(dossier);
+        // 3. Sauvegarder le dossier médical
+        DossierMedical savedDossier = dossierMedicalDAO.save(dossier);
         
-        // 3. Maintenir la relation bidirectionnelle
-        patient.setDossierMedical(dossier);
+        // 4. Établir la relation bidirectionnelle sur les entités managées
+        savedPatient.setDossierMedical(savedDossier);
 
-        return patient;
+        return savedPatient;
     }
 
     /**

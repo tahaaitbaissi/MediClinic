@@ -116,16 +116,23 @@ public class RendezVousService {
             throw new IllegalArgumentException("Rendez-vous non trouvé.");
         }
 
-        if (rdv.getStatus() != RendezVousStatus.CONFIRME && rdv.getStatus() != RendezVousStatus.PLANIFIE) {
-            throw new IllegalStateException("Ce rendez-vous ne peut pas être terminé (Statut: " + rdv.getStatus() + ").");
+        // Valider la transition de statut
+        if (!isValidStatusTransition(rdv.getStatus(), RendezVousStatus.TERMINE)) {
+            throw new IllegalStateException(
+                "Ce rendez-vous ne peut pas être terminé. Statut actuel: " + rdv.getStatus() + 
+                ". Seuls les rendez-vous PLANIFIÉ ou CONFIRMÉ peuvent être terminés."
+            );
         }
 
-        // 1. Changer le statut
+        // 1. Changer le statut et sauvegarder
         rdv.setStatus(RendezVousStatus.TERMINE);
-        rdvDAO.save(rdv);
+        RendezVous savedRdv = rdvDAO.save(rdv);
 
-        // 2. Créer une Consultation vide liée au RDV (l'objet Consultation sera rempli plus tard)
-        consultationService.createConsultationFromRendezVous(rdv);
+        // 2. Recharger le RDV depuis la base pour avoir une entité fraîche
+        RendezVous reloadedRdv = rdvDAO.findById(savedRdv.getId());
+        
+        // 3. Créer une Consultation vide liée au RDV (l'objet Consultation sera rempli plus tard)
+        consultationService.createConsultationFromRendezVous(reloadedRdv);
     }
 
     // --- Méthodes de Recherche et Mise à Jour ---
@@ -148,5 +155,101 @@ public class RendezVousService {
 
     public RendezVous findById(Long id) {
         return rdvDAO.findById(id);
+    }
+
+    public List<RendezVous> findAll() {
+        // Utiliser findAllWithDetails pour charger les relations Patient et Medecin
+        // Nécessaire pour l'affichage dans l'interface utilisateur JavaFX
+        return rdvDAO.findAllWithDetails();
+    }
+
+    /**
+     * Met à jour le statut d'un rendez-vous par son ID.
+     * Utilise l'ID pour éviter les problèmes d'entités détachées.
+     * Valide la transition de statut avant de sauvegarder.
+     */
+    public RendezVous updateStatus(Long rdvId, RendezVousStatus newStatus) {
+        if (rdvId == null) {
+            throw new IllegalArgumentException("L'ID du rendez-vous est requis.");
+        }
+        if (newStatus == null) {
+            throw new IllegalArgumentException("Le nouveau statut est requis.");
+        }
+        
+        // Charger le rendez-vous depuis la base de données
+        RendezVous rdv = rdvDAO.findById(rdvId);
+        if (rdv == null) {
+            throw new IllegalArgumentException("Rendez-vous non trouvé avec l'ID: " + rdvId);
+        }
+        
+        // Valider la transition de statut
+        if (!isValidStatusTransition(rdv.getStatus(), newStatus)) {
+            throw new IllegalStateException(
+                "Transition de statut invalide: " + rdv.getStatus() + " → " + newStatus + 
+                ". Un rendez-vous " + rdv.getStatus() + " ne peut pas devenir " + newStatus + "."
+            );
+        }
+        
+        // Mettre à jour le statut
+        rdv.setStatus(newStatus);
+        return rdvDAO.save(rdv);
+    }
+
+    /**
+     * Met à jour un rendez-vous existant (par exemple pour changer le statut).
+     * @deprecated Utiliser updateStatus(Long, RendezVousStatus) à la place
+     */
+    @Deprecated
+    public RendezVous updateRendezVous(RendezVous rdv) {
+        if (rdv == null || rdv.getId() == null) {
+            throw new IllegalArgumentException("Le rendez-vous doit avoir un ID valide pour être mis à jour.");
+        }
+        
+        // Charger le rendez-vous existant depuis la base de données
+        RendezVous existingRdv = rdvDAO.findById(rdv.getId());
+        if (existingRdv == null) {
+            throw new IllegalArgumentException("Rendez-vous non trouvé.");
+        }
+        
+        // Mettre à jour uniquement les champs modifiables
+        existingRdv.setStatus(rdv.getStatus());
+        existingRdv.setDateHeureDebut(rdv.getDateHeureDebut());
+        existingRdv.setDateHeureFin(rdv.getDateHeureFin());
+        existingRdv.setMotif(rdv.getMotif());
+        
+        // Sauvegarder l'entité managée
+        return rdvDAO.save(existingRdv);
+    }
+
+    /**
+     * Vérifie si une transition de statut est valide.
+     * Règles:
+     * - PLANIFIE → CONFIRME, ANNULE (autorisé)
+     * - CONFIRME → TERMINE, ANNULE (autorisé)
+     * - TERMINE → rien (bloqué)
+     * - ANNULE → rien (bloqué)
+     */
+    public boolean isValidStatusTransition(RendezVousStatus currentStatus, RendezVousStatus newStatus) {
+        if (currentStatus == null || newStatus == null) {
+            return false;
+        }
+        
+        // Même statut = pas de changement nécessaire
+        if (currentStatus == newStatus) {
+            return true;
+        }
+        
+        switch (currentStatus) {
+            case PLANIFIE:
+                return newStatus == RendezVousStatus.CONFIRME || newStatus == RendezVousStatus.ANNULE;
+            case CONFIRME:
+                return newStatus == RendezVousStatus.TERMINE || newStatus == RendezVousStatus.ANNULE;
+            case TERMINE:
+            case ANNULE:
+                // Ces statuts sont finaux, pas de transition autorisée
+                return false;
+            default:
+                return false;
+        }
     }
 }

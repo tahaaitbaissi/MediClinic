@@ -2,7 +2,7 @@ package com.mediclinic.model;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
-import java.math.BigDecimal; // IMPORTANT : Toujours utiliser BigDecimal pour la monnaie
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

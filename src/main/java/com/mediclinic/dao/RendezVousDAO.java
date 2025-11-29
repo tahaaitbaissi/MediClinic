@@ -106,4 +106,27 @@ public class RendezVousDAO extends AbstractDAO<RendezVous, Long> {
             throw e;
         }
     }
+
+    /**
+     * Récupère tous les rendez-vous avec leurs relations (Patient et Medecin) chargées.
+     * Utilisé pour l'affichage dans l'interface utilisateur.
+     */
+    public List<RendezVous> findAllWithDetails() {
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            // JOIN FETCH pour charger Patient et Medecin de manière eager
+            String hql = "SELECT DISTINCT r FROM RendezVous r " +
+                    "LEFT JOIN FETCH r.patient " +
+                    "LEFT JOIN FETCH r.medecin " +
+                    "ORDER BY r.dateHeureDebut DESC";
+            List<RendezVous> results = session.createQuery(hql, RendezVous.class).list();
+            tx.commit();
+            return results;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+            throw e;
+        }
+    }
 }

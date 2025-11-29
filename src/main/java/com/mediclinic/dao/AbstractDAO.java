@@ -18,12 +18,13 @@ public abstract class AbstractDAO<T, ID extends Serializable> implements Generic
     }
 
     @Override
-    public void save(T entity) {
+    public T save(T entity) {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.merge(entity); // merge gère à la fois save (nouvelle) et update (existante)
+            T mergedEntity = session.merge(entity); // merge gère à la fois save (nouvelle) et update (existante)
             tx.commit();
+            return mergedEntity; // Retourner l'entité managée
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             e.printStackTrace();
