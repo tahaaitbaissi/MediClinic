@@ -60,4 +60,17 @@ public class AuthService {
         User newUser = new User(username, hashed, Role.ADMIN);
         userDAO.save(newUser);
     }
+
+    /**
+     * Crée un compte Secretary.
+     */
+    public void registerSecretary(String username, String password) {
+        if (userDAO.findByUsername(username) != null) {
+            throw new IllegalArgumentException("Ce nom d'utilisateur est déjà pris.");
+        }
+
+        String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+        User newUser = new User(username, hashed, Role.SEC);
+        userDAO.save(newUser);
+    }
 }

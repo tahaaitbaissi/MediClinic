@@ -10,6 +10,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import com.mediclinic.model.*;
 import com.mediclinic.service.*;
+import com.mediclinic.util.UserSession;
+import com.mediclinic.util.PermissionChecker;
 
 import java.net.URL;
 import java.time.LocalDate;
@@ -33,6 +35,7 @@ public class AgendaController implements Initializable {
     @FXML private TableColumn<RendezVous, String> colDoctor;
     @FXML private TableColumn<RendezVous, String> colMotif;
     @FXML private TableColumn<RendezVous, String> colStatus;
+    @FXML private Button newAppointmentBtn;
 
     private RendezVousService rendezVousService;
     private PatientService patientService;
@@ -42,13 +45,46 @@ public class AgendaController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Check authentication
+        if (!UserSession.isAuthenticated()) {
+            showAlert("Erreur", "Vous devez être connecté pour accéder à cette page.", Alert.AlertType.ERROR);
+            return;
+        }
+        
+        // Check permission to access agenda page
+        try {
+            if (!PermissionChecker.canAccessPage(UserSession.getInstance().getUser().getRole(), "agenda")) {
+                showAlert("Accès refusé", "Vous n'avez pas la permission d'accéder à cette page.", Alert.AlertType.WARNING);
+                return;
+            }
+        } catch (Exception e) {
+            showAlert("Erreur", "Erreur de vérification des permissions: " + e.getMessage(), Alert.AlertType.ERROR);
+            return;
+        }
+        
         rendezVousService = new RendezVousService();
         patientService = new PatientService();
         medecinService = new MedecinService();
         
         setupTableColumns();
         setupFilters();
+        setupRoleBasedUI();
         loadAppointments();
+    }
+    
+    private void setupRoleBasedUI() {
+        try {
+            Role role = UserSession.getInstance().getUser().getRole();
+            
+            // Hide "New Appointment" button for MEDECIN
+            if (newAppointmentBtn != null) {
+                boolean canCreate = rendezVousService.canCreateAppointment();
+                newAppointmentBtn.setVisible(canCreate);
+                newAppointmentBtn.setManaged(canCreate);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void setupTableColumns() {
@@ -137,16 +173,31 @@ public class AgendaController implements Initializable {
                     HBox buttons = new HBox(5);
                     buttons.getChildren().add(viewBtn);
                     
-                    // Afficher les boutons selon le statut actuel
-                    // PLANIFIE → peut confirmer ou annuler
-                    // CONFIRME → peut terminer ou annuler
-                    // TERMINE, ANNULE → aucune action (statuts finaux)
-                    if (status == RendezVousStatus.PLANIFIE) {
-                        buttons.getChildren().addAll(confirmBtn, cancelBtn);
-                    } else if (status == RendezVousStatus.CONFIRME) {
-                        buttons.getChildren().addAll(completeBtn, cancelBtn);
+                    // Check if current user can modify this appointment
+                    boolean canModify = true;
+                    try {
+                        if (UserSession.isAuthenticated()) {
+                            canModify = rendezVousService.canModifyAppointment(rdv.getId());
+                        } else {
+                            canModify = false;
+                        }
+                    } catch (Exception e) {
+                        canModify = false;
                     }
-                    // Pour TERMINE et ANNULE, seul le bouton voir est affiché
+                    
+                    // Only show action buttons if user can modify
+                    if (canModify) {
+                        // Afficher les boutons selon le statut actuel
+                        // PLANIFIE → peut confirmer ou annuler
+                        // CONFIRME → peut terminer ou annuler
+                        // TERMINE, ANNULE → aucune action (statuts finaux)
+                        if (status == RendezVousStatus.PLANIFIE) {
+                            buttons.getChildren().addAll(confirmBtn, cancelBtn);
+                        } else if (status == RendezVousStatus.CONFIRME) {
+                            buttons.getChildren().addAll(completeBtn, cancelBtn);
+                        }
+                    }
+                    // Pour TERMINE et ANNULE, ou si l'utilisateur ne peut pas modifier, seul le bouton voir est affiché
                     
                     setGraphic(buttons);
                 }
@@ -158,15 +209,22 @@ public class AgendaController implements Initializable {
 
     private void setupFilters() {
         try {
-            doctors = medecinService.findAll();
-            ObservableList<String> doctorNames = FXCollections.observableArrayList();
-            doctorNames.add("Tous les médecins");
-            doctorNames.addAll(doctors.stream()
-                .map(Medecin::getNomComplet)
-                .collect(Collectors.toList()));
-            
-            doctorCombo.setItems(doctorNames);
-            doctorCombo.setValue("Tous les médecins");
+            // For doctors, hide the doctor filter (they only see their own appointments)
+            if (UserSession.isAuthenticated() && UserSession.getInstance().hasRole(Role.MEDECIN)) {
+                doctorCombo.setVisible(false);
+                doctorCombo.setManaged(false);
+                doctors = List.of();
+            } else {
+                doctors = medecinService.findAll();
+                ObservableList<String> doctorNames = FXCollections.observableArrayList();
+                doctorNames.add("Tous les médecins");
+                doctorNames.addAll(doctors.stream()
+                    .map(Medecin::getNomComplet)
+                    .collect(Collectors.toList()));
+                
+                doctorCombo.setItems(doctorNames);
+                doctorCombo.setValue("Tous les médecins");
+            }
         } catch (Exception e) {
             doctorCombo.setItems(FXCollections.observableArrayList("Tous les médecins"));
             doctorCombo.setValue("Tous les médecins");
@@ -183,8 +241,9 @@ public class AgendaController implements Initializable {
 
     private void loadAppointments() {
         try {
-            // Charger tous les rendez-vous depuis la base de données
-            List<RendezVous> allAppointments = rendezVousService.findAll();
+            // Use findAllForCurrentUser() to apply role-based filtering
+            List<RendezVous> allAppointments = rendezVousService.findAllForCurrentUser();
+            
             appointmentList = FXCollections.observableArrayList(allAppointments);
             appointmentTable.setItems(appointmentList);
         } catch (Exception e) {
@@ -195,8 +254,8 @@ public class AgendaController implements Initializable {
 
     private void filterAppointments() {
         try {
-            // Recharger tous les rendez-vous
-            List<RendezVous> allAppointments = rendezVousService.findAll();
+            // Use findAllForCurrentUser() to respect role-based filtering
+            List<RendezVous> allAppointments = rendezVousService.findAllForCurrentUser();
             
             // Appliquer les filtres
             List<RendezVous> filtered = allAppointments.stream()
@@ -239,6 +298,12 @@ public class AgendaController implements Initializable {
 
     @FXML
     private void handleNewAppointment() {
+        // Check permission
+        if (!rendezVousService.canCreateAppointment()) {
+            showAlert("Accès refusé", "Vous n'avez pas la permission de créer un rendez-vous.", Alert.AlertType.WARNING);
+            return;
+        }
+        
         try {
             Dialog<RendezVous> dialog = new Dialog<>();
             dialog.setTitle("Nouveau Rendez-vous");
@@ -249,9 +314,9 @@ public class AgendaController implements Initializable {
             grid.setVgap(10);
             grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
 
-            // Patient selection
+            // Patient selection - use filtered list for doctors
             ComboBox<Patient> patientCombo = new ComboBox<>();
-            patientCombo.setItems(FXCollections.observableArrayList(patientService.findAll()));
+            patientCombo.setItems(FXCollections.observableArrayList(patientService.findAllForCurrentUser()));
             patientCombo.setPromptText("Sélectionner un patient");
             patientCombo.setConverter(new javafx.util.StringConverter<Patient>() {
                 @Override
@@ -278,6 +343,17 @@ public class AgendaController implements Initializable {
                     return null;
                 }
             });
+            
+            // Pre-select and disable doctor selection for MEDECIN users
+            UserSession session = UserSession.getInstance();
+            Role role = session.getUser().getRole();
+            if (role == Role.MEDECIN) {
+                Medecin medecin = UserSession.getInstance().getUser().getMedecin();
+                if (medecin != null) {
+                    doctorComboBox.setValue(medecin);
+                    doctorComboBox.setDisable(true); // Disable doctor selection for doctors
+                }
+            }
 
             DatePicker datePicker = new DatePicker();
             datePicker.setValue(LocalDate.now());
@@ -364,6 +440,17 @@ public class AgendaController implements Initializable {
     private void changeStatus(RendezVous rdv, RendezVousStatus newStatus) {
         if (rdv == null || rdv.getId() == null) return;
         
+        // Check permission
+        try {
+            if (!rendezVousService.canModifyAppointment(rdv.getId())) {
+                showAlert("Accès refusé", "Vous ne pouvez modifier que vos propres rendez-vous.", Alert.AlertType.WARNING);
+                return;
+            }
+        } catch (Exception e) {
+            showAlert("Erreur", "Erreur de vérification des permissions: " + e.getMessage(), Alert.AlertType.ERROR);
+            return;
+        }
+        
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirmation");
         confirm.setHeaderText("Changer le statut du rendez-vous");
@@ -376,6 +463,8 @@ public class AgendaController implements Initializable {
                     rendezVousService.updateStatus(rdv.getId(), newStatus);
                     loadAppointments();
                     showAlert("Succès", "Statut mis à jour avec succès!", Alert.AlertType.INFORMATION);
+                } catch (SecurityException e) {
+                    showAlert("Accès refusé", e.getMessage(), Alert.AlertType.WARNING);
                 } catch (Exception e) {
                     showAlert("Erreur", "Erreur lors de la mise à jour: " + e.getMessage(), Alert.AlertType.ERROR);
                 }
@@ -385,6 +474,17 @@ public class AgendaController implements Initializable {
 
     private void completeAppointment(RendezVous rdv) {
         if (rdv == null) return;
+        
+        // Check permission
+        try {
+            if (!rendezVousService.canModifyAppointment(rdv.getId())) {
+                showAlert("Accès refusé", "Vous ne pouvez terminer que vos propres rendez-vous.", Alert.AlertType.WARNING);
+                return;
+            }
+        } catch (Exception e) {
+            showAlert("Erreur", "Erreur de vérification des permissions: " + e.getMessage(), Alert.AlertType.ERROR);
+            return;
+        }
         
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Terminer le rendez-vous");
@@ -397,6 +497,8 @@ public class AgendaController implements Initializable {
                     rendezVousService.terminerRendezVous(rdv.getId());
                     loadAppointments();
                     showAlert("Succès", "Rendez-vous terminé et consultation créée!", Alert.AlertType.INFORMATION);
+                } catch (SecurityException e) {
+                    showAlert("Accès refusé", e.getMessage(), Alert.AlertType.WARNING);
                 } catch (Exception e) {
                     showAlert("Erreur", "Erreur: " + e.getMessage(), Alert.AlertType.ERROR);
                 }

@@ -26,8 +26,8 @@
                 <Region HBox.hgrow="ALWAYS"/>
 
                 <HBox spacing="10" alignment="CENTER_RIGHT">
-                    <Label text="👨‍⚕️ Dr. Martin" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                    <Button text="Déconnexion" styleClass="btn-danger"/>
+                    <Label fx:id="userInfoLabel" text="Utilisateur" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                    <Button text="Déconnexion" styleClass="btn-danger" fx:id="logoutBtn" onAction="#handleLogout"/>
                 </HBox>
             </HBox>
 
@@ -44,6 +44,8 @@
                             onAction="#showDoctors" fx:id="doctorsBtn"/>
                     <Button text="💰 Facturation" styleClass="sidebar-button"
                             onAction="#showBilling" fx:id="billingBtn"/>
+                    <Button text="👤 Utilisateurs" styleClass="sidebar-button"
+                            onAction="#showUsers" fx:id="usersBtn"/>
                 </HBox>
             </HBox>
         </VBox>

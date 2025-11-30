@@ -33,6 +33,14 @@ public class DoctorController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Check permission - only ADMIN can access
+        try {
+            com.mediclinic.util.PermissionChecker.requireRole(com.mediclinic.model.Role.ADMIN);
+        } catch (IllegalStateException e) {
+            showAlert("Accès refusé", e.getMessage(), javafx.scene.control.Alert.AlertType.ERROR);
+            return;
+        }
+        
         medecinService = new MedecinService();
         
         setupTableColumns();

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.UserController"
+      spacing="20" styleClass="form-container">
+
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <Label text="👤 Gestion des Utilisateurs" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="+ Nouvel Utilisateur" styleClass="btn-primary" onAction="#handleNewUser"/>
+    </HBox>
+
+    <!-- Barre de Recherche -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <TextField fx:id="searchField" promptText="Rechercher un utilisateur..." styleClass="text-field" HBox.hgrow="ALWAYS"/>
+        <Button text="🔍 Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
+        <Button text="🔄 Actualiser" styleClass="btn-warning" onAction="#handleRefresh"/>
+    </HBox>
+
+    <!-- Tableau des Utilisateurs -->
+    <TableView fx:id="userTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
+            <TableColumn fx:id="colUsername" text="Nom d'utilisateur" prefWidth="250"/>
+            <TableColumn fx:id="colRole" text="Rôle" prefWidth="150"/>
+        </columns>
+    </TableView>
+
+</VBox>
+

@@ -10,7 +10,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import com.mediclinic.model.Patient;
+import com.mediclinic.model.Role;
 import com.mediclinic.service.PatientService;
+import com.mediclinic.util.PermissionChecker;
+import com.mediclinic.util.UserSession;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -25,16 +28,50 @@ public class PatientController implements Initializable {
     @FXML private TableColumn<Patient, String> colDateNaissance;
     @FXML private TextField searchField;
     @FXML private ComboBox<String> filterCombo;
+    @FXML private Button addPatientBtn;
 
     private PatientService patientService;
     private ObservableList<Patient> patientList;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Check authentication
+        if (!UserSession.isAuthenticated()) {
+            showAlert("Erreur", "Vous devez être connecté pour accéder à cette page.", Alert.AlertType.ERROR);
+            return;
+        }
+        
+        // Check permission to access patients page
+        try {
+            if (!PermissionChecker.canAccessPage(UserSession.getInstance().getUser().getRole(), "patients")) {
+                showAlert("Accès refusé", "Vous n'avez pas la permission d'accéder à cette page.", Alert.AlertType.WARNING);
+                return;
+            }
+        } catch (Exception e) {
+            showAlert("Erreur", "Erreur de vérification des permissions: " + e.getMessage(), Alert.AlertType.ERROR);
+            return;
+        }
+        
         patientService = new PatientService();
         setupTableColumns();
+        setupRoleBasedUI();
         loadPatients();
         setupSearchFilter();
+    }
+    
+    private void setupRoleBasedUI() {
+        try {
+            Role role = UserSession.getInstance().getUser().getRole();
+            
+            // Hide/show "Add Patient" button based on role
+            if (addPatientBtn != null) {
+                boolean canCreate = patientService.canCreatePatient();
+                addPatientBtn.setVisible(canCreate);
+                addPatientBtn.setManaged(canCreate);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void setupTableColumns() {
@@ -77,8 +114,27 @@ public class PatientController implements Initializable {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    HBox buttons = new HBox(5, detailsBtn, editBtn, deleteBtn);
-                    setGraphic(buttons);
+                    try {
+                        UserSession session = UserSession.getInstance();
+                        Role role = session.getUser().getRole();
+                        HBox buttons = new HBox(5);
+                        buttons.getChildren().add(detailsBtn); // View button always visible
+                        
+                        // Hide edit and delete buttons for MEDECIN (read-only)
+                        if (role == Role.ADMIN || role == Role.SEC) {
+                            buttons.getChildren().add(editBtn);
+                        }
+                        
+                        // Only ADMIN can delete
+                        if (role == Role.ADMIN) {
+                            buttons.getChildren().add(deleteBtn);
+                        }
+                        
+                        setGraphic(buttons);
+                    } catch (Exception e) {
+                        // If error, show only view button
+                        setGraphic(new HBox(5, detailsBtn));
+                    }
                 }
             }
         });
@@ -88,7 +144,8 @@ public class PatientController implements Initializable {
 
     private void loadPatients() {
         try {
-            patientList = FXCollections.observableArrayList(patientService.findAll());
+            // Use findAllForCurrentUser() to apply role-based filtering
+            patientList = FXCollections.observableArrayList(patientService.findAllForCurrentUser());
             patientTable.setItems(patientList);
         } catch (Exception e) {
             showAlert("Erreur", "Erreur lors du chargement des patients: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -125,6 +182,12 @@ public class PatientController implements Initializable {
 
     @FXML
     private void showAddPatientForm() {
+        // Check permission
+        if (!patientService.canCreatePatient()) {
+            showAlert("Accès refusé", "Vous n'avez pas la permission de créer un patient.", Alert.AlertType.WARNING);
+            return;
+        }
+        
         try {
             Dialog<Patient> dialog = new Dialog<>();
             dialog.setTitle("Nouveau Patient");
@@ -212,10 +275,22 @@ public class PatientController implements Initializable {
     }
 
     private void editPatient(Patient patient) {
+        // Check permission
+        if (!patientService.canModifyPatient()) {
+            showAlert("Accès refusé", "Vous n'avez pas la permission de modifier un patient.", Alert.AlertType.WARNING);
+            return;
+        }
+        
         showAlert("Information", "Édition du patient: " + patient.getNomComplet(), Alert.AlertType.INFORMATION);
     }
 
     private void deletePatient(Patient patient) {
+        // Check permission - only ADMIN can delete
+        if (!patientService.canDeletePatient()) {
+            showAlert("Accès refusé", "Seul l'administrateur peut supprimer un patient.", Alert.AlertType.WARNING);
+            return;
+        }
+        
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmation de suppression");
         alert.setHeaderText("Supprimer le patient");

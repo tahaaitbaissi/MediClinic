@@ -10,6 +10,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import com.mediclinic.service.AuthService;
 import com.mediclinic.model.User;
+import com.mediclinic.model.Role;
+import com.mediclinic.util.UserSession;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -51,6 +53,9 @@ public class LoginController implements Initializable {
             User user = authService.authenticate(username, password);
             System.out.println("Connexion réussie pour: " + user.getUsername() + " (Role: " + user.getRole() + ")");
             
+            // Set UserSession
+            UserSession.setInstance(user);
+            
             // Charger la vue principale
             loadMainView();
             
@@ -90,8 +95,8 @@ public class LoginController implements Initializable {
         }
 
         try {
-            // Créer un compte admin pour les tests
-            authService.registerAdmin(username, password);
+            // For testing: create a SEC (Secretary) account
+            authService.registerSecretary(username, password);
             System.out.println("Compte créé pour: " + username);
             
             showSuccess("Compte créé avec succès! Vous pouvez maintenant vous connecter.");

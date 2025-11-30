@@ -38,6 +38,29 @@ public class RendezVousDAO extends AbstractDAO<RendezVous, Long> {
     }
 
     /**
+     * Récupère tous les RDV d'un médecin (sans limite de date).
+     */
+    public List<RendezVous> findByMedecin(Medecin medecin) {
+        Transaction tx = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            tx = session.beginTransaction();
+            String hql = "SELECT DISTINCT r FROM RendezVous r " +
+                    "LEFT JOIN FETCH r.patient " +
+                    "LEFT JOIN FETCH r.medecin " +
+                    "WHERE r.medecin = :medecin ORDER BY r.dateHeureDebut DESC";
+            List<RendezVous> results = session.createQuery(hql, RendezVous.class)
+                    .setParameter("medecin", medecin)
+                    .list();
+            tx.commit();
+            return results;
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    /**
      * Vérifie s'il existe des RDV en conflit pour un médecin dans une plage horaire.
      * C'est la fonction la plus importante pour la logique de collision.
      */

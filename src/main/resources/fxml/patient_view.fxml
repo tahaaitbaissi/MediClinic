@@ -13,7 +13,7 @@
     <HBox spacing="20" alignment="CENTER_LEFT">
         <Label text="👥 Gestion des Patients" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="+ Nouveau Patient" styleClass="btn-primary" onAction="#showAddPatientForm"/>
+        <Button text="+ Nouveau Patient" styleClass="btn-primary" onAction="#showAddPatientForm" fx:id="addPatientBtn"/>
     </HBox>
 
     <!-- Barre de Recherche -->

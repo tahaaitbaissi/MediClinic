@@ -46,6 +46,17 @@ public class BillingController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Check permission - SEC and ADMIN can access
+        try {
+            com.mediclinic.util.PermissionChecker.requireRole(
+                com.mediclinic.model.Role.SEC, 
+                com.mediclinic.model.Role.ADMIN
+            );
+        } catch (IllegalStateException e) {
+            showAlert("Accès refusé", e.getMessage(), javafx.scene.control.Alert.AlertType.ERROR);
+            return;
+        }
+        
         facturationService = new FacturationService();
         patientService = new PatientService();
         
@@ -243,6 +254,12 @@ public class BillingController implements Initializable {
 
     @FXML
     private void handleNewInvoice() {
+        // Check permission
+        if (!facturationService.canCreateInvoice()) {
+            showAlert("Accès refusé", "Vous n'avez pas la permission de créer une facture.", Alert.AlertType.WARNING);
+            return;
+        }
+        
         try {
             Dialog<Facture> dialog = new Dialog<>();
             dialog.setTitle("Nouvelle Facture");

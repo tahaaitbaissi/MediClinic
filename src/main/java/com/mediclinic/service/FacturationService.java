@@ -6,7 +6,9 @@ import com.mediclinic.dao.PatientDAO;
 import com.mediclinic.model.Facture;
 import com.mediclinic.model.LigneFacture;
 import com.mediclinic.model.Patient;
+import com.mediclinic.model.Role;
 import com.mediclinic.model.TypePaiement;
+import com.mediclinic.util.UserSession;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,7 +34,18 @@ public class FacturationService {
      * @param patientId ID du patient à facturer.
      * @param lignes Lignes de facturation (services, actes).
      */
-    public Facture creerFacture(Long patientId, List<LigneFacture> lignes) throws IllegalArgumentException {
+    public Facture creerFacture(Long patientId, List<LigneFacture> lignes) throws IllegalArgumentException, SecurityException {
+        // Check authentication and permission
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        Role role = UserSession.getInstance().getUser().getRole();
+        
+        // Only SEC and ADMIN can create invoices
+        if (role != Role.SEC && role != Role.ADMIN) {
+            throw new SecurityException("Vous n'avez pas la permission de créer une facture.");
+        }
 
         // 1. Validation des lignes
         if (lignes == null || lignes.isEmpty()) {
@@ -77,7 +90,19 @@ public class FacturationService {
      * Marque une facture comme payée et enregistre le type de paiement.
      * Utilise l'ID pour charger et sauvegarder correctement l'entité.
      */
-    public Facture marquerCommePayee(Long factureId, TypePaiement typePaiement) {
+    public Facture marquerCommePayee(Long factureId, TypePaiement typePaiement) throws SecurityException {
+        // Check authentication and permission
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        Role role = UserSession.getInstance().getUser().getRole();
+        
+        // Only SEC and ADMIN can mark invoices as paid
+        if (role != Role.SEC && role != Role.ADMIN) {
+            throw new SecurityException("Vous n'avez pas la permission de marquer une facture comme payée.");
+        }
+        
         if (factureId == null) {
             throw new IllegalArgumentException("L'ID de la facture est requis.");
         }
@@ -96,6 +121,17 @@ public class FacturationService {
         facture.setTypePaiement(typePaiement);
 
         return factureDAO.save(facture);
+    }
+    
+    /**
+     * Check if current user can create invoices
+     */
+    public boolean canCreateInvoice() {
+        if (!UserSession.isAuthenticated()) {
+            return false;
+        }
+        Role role = UserSession.getInstance().getUser().getRole();
+        return role == Role.SEC || role == Role.ADMIN;
     }
 
     // --- Méthodes de Recherche ---

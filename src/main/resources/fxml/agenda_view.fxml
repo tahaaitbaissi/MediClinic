@@ -13,7 +13,7 @@
     <HBox spacing="20" alignment="CENTER_LEFT">
         <Label text="📅 Agenda des Rendez-vous" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="+ Nouveau Rendez-vous" styleClass="btn-primary" onAction="#handleNewAppointment"/>
+        <Button text="+ Nouveau Rendez-vous" styleClass="btn-primary" onAction="#handleNewAppointment" fx:id="newAppointmentBtn"/>
     </HBox>
 
     <!-- Filtres et Recherche -->

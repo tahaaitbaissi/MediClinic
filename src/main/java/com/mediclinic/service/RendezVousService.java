@@ -7,6 +7,9 @@ import com.mediclinic.model.RendezVous;
 import com.mediclinic.model.Medecin;
 import com.mediclinic.model.Patient;
 import com.mediclinic.model.RendezVousStatus;
+import com.mediclinic.model.Role;
+import com.mediclinic.model.User;
+import com.mediclinic.util.UserSession;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.List;
@@ -37,8 +40,21 @@ public class RendezVousService {
      * @param rdv L'objet RendezVous à enregistrer.
      * @throws IllegalStateException Si un conflit d'horaire est détecté.
      * @throws IllegalArgumentException Si le patient ou le médecin n'est pas trouvé.
+     * @throws SecurityException Si l'utilisateur n'a pas la permission de créer/modifier.
      */
-    public RendezVous planifierRendezVous(RendezVous rdv) throws IllegalStateException, IllegalArgumentException {
+    public RendezVous planifierRendezVous(RendezVous rdv) throws IllegalStateException, IllegalArgumentException, SecurityException {
+        // Check authentication and permission
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        User user = UserSession.getInstance().getUser();
+        Role role = user.getRole();
+        
+        // SEC and ADMIN can create appointments
+        if (role != Role.SEC && role != Role.ADMIN) {
+            throw new SecurityException("Vous n'avez pas la permission de créer un rendez-vous.");
+        }
 
         // 1. Validation des dates
         validateAppointmentDates(rdv);
@@ -110,10 +126,24 @@ public class RendezVousService {
      * Termine un RDV existant et crée une nouvelle Consultation (Orchestration de service).
      * @param rdvId ID du rendez-vous à terminer.
      */
-    public void terminerRendezVous(Long rdvId) throws IllegalStateException {
+    public void terminerRendezVous(Long rdvId) throws IllegalStateException, SecurityException {
+        // Check authentication
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
         RendezVous rdv = rdvDAO.findById(rdvId);
         if (rdv == null) {
             throw new IllegalArgumentException("Rendez-vous non trouvé.");
+        }
+
+        // Check permission - doctors can only complete their own appointments
+        User user = UserSession.getInstance().getUser();
+        if (user.getRole() == Role.MEDECIN) {
+            Medecin medecin = user.getMedecin();
+            if (medecin == null || !medecin.getId().equals(rdv.getMedecin().getId())) {
+                throw new SecurityException("Vous ne pouvez terminer que vos propres rendez-vous.");
+            }
         }
 
         // Valider la transition de statut
@@ -158,9 +188,38 @@ public class RendezVousService {
     }
 
     public List<RendezVous> findAll() {
-        // Utiliser findAllWithDetails pour charger les relations Patient et Medecin
-        // Nécessaire pour l'affichage dans l'interface utilisateur JavaFX
-        return rdvDAO.findAllWithDetails();
+        // Check authentication
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        return findAllForCurrentUser();
+    }
+    
+    /**
+     * Get all appointments filtered by current user's role
+     */
+    public List<RendezVous> findAllForCurrentUser() {
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        User user = UserSession.getInstance().getUser();
+        Role role = user.getRole();
+        
+        if (role == Role.ADMIN || role == Role.SEC) {
+            // ADMIN and SEC see all appointments
+            return rdvDAO.findAllWithDetails();
+        } else if (role == Role.MEDECIN) {
+            // Doctors see only their appointments
+            Medecin medecin = user.getMedecin();
+            if (medecin == null) {
+                return List.of();
+            }
+            return rdvDAO.findByMedecin(medecin);
+        }
+        
+        return List.of();
     }
 
     /**
@@ -168,7 +227,12 @@ public class RendezVousService {
      * Utilise l'ID pour éviter les problèmes d'entités détachées.
      * Valide la transition de statut avant de sauvegarder.
      */
-    public RendezVous updateStatus(Long rdvId, RendezVousStatus newStatus) {
+    public RendezVous updateStatus(Long rdvId, RendezVousStatus newStatus) throws SecurityException {
+        // Check authentication
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
         if (rdvId == null) {
             throw new IllegalArgumentException("L'ID du rendez-vous est requis.");
         }
@@ -182,6 +246,15 @@ public class RendezVousService {
             throw new IllegalArgumentException("Rendez-vous non trouvé avec l'ID: " + rdvId);
         }
         
+        // Check permission - doctors can only modify their own appointments
+        User user = UserSession.getInstance().getUser();
+        if (user.getRole() == Role.MEDECIN) {
+            Medecin medecin = user.getMedecin();
+            if (medecin == null || !medecin.getId().equals(rdv.getMedecin().getId())) {
+                throw new SecurityException("Vous ne pouvez modifier que vos propres rendez-vous.");
+            }
+        }
+        
         // Valider la transition de statut
         if (!isValidStatusTransition(rdv.getStatus(), newStatus)) {
             throw new IllegalStateException(
@@ -193,6 +266,46 @@ public class RendezVousService {
         // Mettre à jour le statut
         rdv.setStatus(newStatus);
         return rdvDAO.save(rdv);
+    }
+    
+    /**
+     * Check if current user can modify this appointment
+     */
+    public boolean canModifyAppointment(Long rdvId) {
+        if (!UserSession.isAuthenticated()) {
+            return false;
+        }
+        
+        User user = UserSession.getInstance().getUser();
+        Role role = user.getRole();
+        
+        // ADMIN and SEC can modify any appointment
+        if (role == Role.ADMIN || role == Role.SEC) {
+            return true;
+        }
+        
+        // Doctors can only modify their own appointments
+        if (role == Role.MEDECIN) {
+            RendezVous rdv = rdvDAO.findById(rdvId);
+            if (rdv == null) {
+                return false;
+            }
+            Medecin medecin = user.getMedecin();
+            return medecin != null && medecin.getId().equals(rdv.getMedecin().getId());
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if current user can create appointments
+     */
+    public boolean canCreateAppointment() {
+        if (!UserSession.isAuthenticated()) {
+            return false;
+        }
+        Role role = UserSession.getInstance().getUser().getRole();
+        return role == Role.SEC || role == Role.ADMIN;
     }
 
     /**

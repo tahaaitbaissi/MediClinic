@@ -5,8 +5,14 @@ import com.mediclinic.dao.DossierMedicalDAO;
 import com.mediclinic.dao.RendezVousDAO;
 import com.mediclinic.model.Patient;
 import com.mediclinic.model.DossierMedical;
+import com.mediclinic.model.Medecin;
+import com.mediclinic.model.Role;
+import com.mediclinic.model.User;
+import com.mediclinic.util.UserSession;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 
 public class PatientService {
@@ -37,7 +43,20 @@ public class PatientService {
      * Vérifie la validité des coordonnées et sauvegarde le patient,
      * puis crée son dossier médical.
      */
-    public Patient createPatient(Patient patient) throws IllegalArgumentException {
+    public Patient createPatient(Patient patient) throws IllegalArgumentException, SecurityException {
+        // Check authentication and permission
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        User user = UserSession.getInstance().getUser();
+        Role role = user.getRole();
+        
+        // Only SEC and ADMIN can create patients
+        if (role != Role.SEC && role != Role.ADMIN) {
+            throw new SecurityException("Vous n'avez pas la permission de créer un patient.");
+        }
+        
         // Règle de gestion 1 : Coordonnées valides (email, téléphone)
         if (!validateContactInfo(patient)) {
             throw new IllegalArgumentException("Informations de contact (email/téléphone) invalides ou incomplètes.");
@@ -106,7 +125,17 @@ public class PatientService {
      * Suppression contrôlée pour éviter la perte d'historique.
      * En mode strict, nous n'autorisons pas la suppression si des RDV existent.
      */
-    public void deletePatient(Long patientId) throws IllegalStateException {
+    public void deletePatient(Long patientId) throws IllegalStateException, SecurityException {
+        // Check authentication and permission - Only ADMIN can delete
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        User user = UserSession.getInstance().getUser();
+        if (user.getRole() != Role.ADMIN) {
+            throw new SecurityException("Seul l'administrateur peut supprimer un patient.");
+        }
+        
         Patient patient = patientDAO.findById(patientId);
         if (patient == null) {
             throw new IllegalArgumentException("Patient non trouvé.");
@@ -129,16 +158,127 @@ public class PatientService {
     }
 
     public List<Patient> findAll() {
-        return patientDAO.findAll();
+        // Check authentication
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        return findAllForCurrentUser();
+    }
+
+    /**
+     * Get all patients filtered by current user's role
+     */
+    public List<Patient> findAllForCurrentUser() {
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        User user = UserSession.getInstance().getUser();
+        Role role = user.getRole();
+        
+        if (role == Role.ADMIN || role == Role.SEC) {
+            // ADMIN and SEC see all patients
+            return patientDAO.findAll();
+        } else if (role == Role.MEDECIN) {
+            // Doctors see only patients from their appointments
+            Medecin medecin = user.getMedecin();
+            if (medecin == null) {
+                return List.of();
+            }
+            
+            // Get all appointments for this doctor
+            List<com.mediclinic.model.RendezVous> appointments = rendezVousDAO.findByMedecin(medecin);
+            
+            // Extract unique patients
+            Set<Long> patientIds = appointments.stream()
+                .map(rdv -> rdv.getPatient().getId())
+                .collect(Collectors.toSet());
+            
+            // Return patients with those IDs
+            return patientIds.stream()
+                .map(id -> patientDAO.findById(id))
+                .filter(p -> p != null)
+                .collect(Collectors.toList());
+        }
+        
+        return List.of();
     }
 
     public List<Patient> searchPatients(String term) {
-        // Utilise la recherche implémentée dans le DAO
-        return patientDAO.searchByName(term);
+        // Check authentication
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        // Apply role-based filtering to search results
+        List<Patient> allResults = patientDAO.searchByName(term);
+        List<Patient> filteredResults = findAllForCurrentUser();
+        
+        // Return intersection of search results and filtered results
+        Set<Long> allowedPatientIds = filteredResults.stream()
+            .map(Patient::getId)
+            .collect(Collectors.toSet());
+        
+        return allResults.stream()
+            .filter(p -> allowedPatientIds.contains(p.getId()))
+            .collect(Collectors.toList());
     }
 
     public DossierMedical getDossier(Long patientId) {
+        // Check authentication
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        // Verify user can access this patient
         Patient patient = patientDAO.findById(patientId);
-        return patient != null ? patient.getDossierMedical() : null;
+        if (patient == null) {
+            return null;
+        }
+        
+        // Check if current user can access this patient
+        List<Patient> accessiblePatients = findAllForCurrentUser();
+        boolean canAccess = accessiblePatients.stream()
+            .anyMatch(p -> p.getId().equals(patientId));
+        
+        if (!canAccess) {
+            throw new SecurityException("Vous n'avez pas accès à ce patient.");
+        }
+        
+        return patient.getDossierMedical();
+    }
+    
+    /**
+     * Check if current user can create patients
+     */
+    public boolean canCreatePatient() {
+        if (!UserSession.isAuthenticated()) {
+            return false;
+        }
+        Role role = UserSession.getInstance().getUser().getRole();
+        return role == Role.SEC || role == Role.ADMIN;
+    }
+    
+    /**
+     * Check if current user can modify patients
+     */
+    public boolean canModifyPatient() {
+        if (!UserSession.isAuthenticated()) {
+            return false;
+        }
+        Role role = UserSession.getInstance().getUser().getRole();
+        return role == Role.SEC || role == Role.ADMIN;
+    }
+    
+    /**
+     * Check if current user can delete patients
+     */
+    public boolean canDeletePatient() {
+        if (!UserSession.isAuthenticated()) {
+            return false;
+        }
+        Role role = UserSession.getInstance().getUser().getRole();
+        return role == Role.ADMIN;
     }
 }

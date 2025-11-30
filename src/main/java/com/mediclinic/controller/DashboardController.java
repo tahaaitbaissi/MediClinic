@@ -11,8 +11,10 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import com.mediclinic.service.*;
 import com.mediclinic.model.*;
+import com.mediclinic.util.UserSession;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,17 +31,11 @@ public class DashboardController implements Initializable {
     @FXML private Label activeDoctorsLabel;
     @FXML private BarChart<String, Number> appointmentsChart;
 
-    private PatientService patientService;
-    private RendezVousService rendezVousService;
-    private MedecinService medecinService;
-    private FacturationService facturationService;
+    private DashboardService dashboardService;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        patientService = new PatientService();
-        rendezVousService = new RendezVousService();
-        medecinService = new MedecinService();
-        facturationService = new FacturationService();
+        dashboardService = new DashboardService();
         
         initializeStats();
         initializeCharts();
@@ -47,28 +43,72 @@ public class DashboardController implements Initializable {
 
     private void initializeStats() {
         try {
-            // Total Patients
-            List<Patient> allPatients = patientService.findAll();
-            totalPatientsLabel.setText(String.valueOf(allPatients.size()));
-            
-            // Today's Appointments - we'd need to filter by today's date
-            // For now, showing a placeholder
-            todayAppointmentsLabel.setText("N/A");
-            
-            // Active Doctors
-            List<Medecin> allDoctors = medecinService.findAll();
-            activeDoctorsLabel.setText(String.valueOf(allDoctors.size()));
-            
-            // Monthly Revenue - calculate from unpaid/paid invoices
-            List<Facture> unpaidInvoices = facturationService.getUnpaidFactures();
-            BigDecimal revenue = BigDecimal.ZERO;
-            
-            // In a real scenario, we'd filter by current month
-            // For now, we'll just show a calculated value
-            monthlyRevenueLabel.setText(revenue.toString() + " €");
+            if (!UserSession.isAuthenticated()) {
+                return;
+            }
+
+            DashboardService.DashboardStats stats = dashboardService.getDashboardStats();
+            Role role = UserSession.getInstance().getUser().getRole();
+
+            // Today's appointments - always shown
+            if (stats.getTodayAppointments() != null) {
+                todayAppointmentsLabel.setText(String.valueOf(stats.getTodayAppointments()));
+            } else {
+                todayAppointmentsLabel.setText("0");
+            }
+
+            // Role-specific stats
+            switch (role) {
+                case ADMIN:
+                    // Admin sees all stats
+                    if (stats.getTotalPatients() != null) {
+                        totalPatientsLabel.setText(String.valueOf(stats.getTotalPatients()));
+                    } else {
+                        totalPatientsLabel.setText("0");
+                    }
+                    
+                    if (stats.getActiveDoctors() != null) {
+                        activeDoctorsLabel.setText(String.valueOf(stats.getActiveDoctors()));
+                    } else {
+                        activeDoctorsLabel.setText("0");
+                    }
+                    
+                    if (stats.getMonthlyRevenue() != null) {
+                        BigDecimal revenue = stats.getMonthlyRevenue().setScale(2, RoundingMode.HALF_UP);
+                        monthlyRevenueLabel.setText(revenue.toString() + " €");
+                    } else {
+                        monthlyRevenueLabel.setText("0 €");
+                    }
+                    break;
+
+                case MEDECIN:
+                    // Doctor sees only their appointments and patient count
+                    if (stats.getPatientsTodayForDoctor() != null) {
+                        totalPatientsLabel.setText(String.valueOf(stats.getPatientsTodayForDoctor()));
+                    } else {
+                        totalPatientsLabel.setText("0");
+                    }
+                    
+                    activeDoctorsLabel.setText("N/A");
+                    monthlyRevenueLabel.setText("N/A");
+                    break;
+
+                case SEC:
+                    // Secretary sees unpaid invoices count instead of total patients
+                    if (stats.getUnpaidInvoices() != null) {
+                        totalPatientsLabel.setText(String.valueOf(stats.getUnpaidInvoices()));
+                    } else {
+                        totalPatientsLabel.setText("0");
+                    }
+                    
+                    activeDoctorsLabel.setText("N/A");
+                    monthlyRevenueLabel.setText("N/A");
+                    break;
+            }
             
         } catch (Exception e) {
             System.err.println("Error loading statistics: " + e.getMessage());
+            e.printStackTrace();
             // Set default values on error
             totalPatientsLabel.setText("0");
             todayAppointmentsLabel.setText("0");
@@ -106,6 +146,7 @@ public class DashboardController implements Initializable {
             initializeCharts();
             showAlert("Dashboard", "Dashboard actualisé avec succès!", Alert.AlertType.INFORMATION);
         } catch (Exception e) {
+            e.printStackTrace();
             showAlert("Erreur", "Erreur lors de l'actualisation: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
