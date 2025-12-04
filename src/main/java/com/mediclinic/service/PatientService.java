@@ -151,6 +151,63 @@ public class PatientService {
         patientDAO.delete(patient);
     }
 
+    /**
+     * Met à jour les informations d'un patient existant.
+     */
+    public Patient updatePatient(Patient patient) throws IllegalArgumentException, SecurityException {
+        // Check authentication and permission
+        if (!UserSession.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié.");
+        }
+        
+        User user = UserSession.getInstance().getUser();
+        Role role = user.getRole();
+        
+        // Only SEC and ADMIN can update patients
+        if (role != Role.SEC && role != Role.ADMIN) {
+            throw new SecurityException("Vous n'avez pas la permission de modifier un patient.");
+        }
+        
+        // Vérifier que le patient existe
+        if (patient.getId() == null) {
+            throw new IllegalArgumentException("ID du patient manquant.");
+        }
+        
+        Patient existingPatient = patientDAO.findById(patient.getId());
+        if (existingPatient == null) {
+            throw new IllegalArgumentException("Patient non trouvé.");
+        }
+        
+        // Validation des coordonnées
+        if (!validateContactInfo(patient)) {
+            throw new IllegalArgumentException("Informations de contact (email/téléphone) invalides ou incomplètes.");
+        }
+
+        // Validation du format email
+        if (!isValidEmail(patient.getEmail())) {
+            throw new IllegalArgumentException("Format d'email invalide.");
+        }
+
+        // Validation du format téléphone
+        if (!isValidPhone(patient.getTelephone())) {
+            throw new IllegalArgumentException("Format de téléphone invalide.");
+        }
+
+        // Validation de la date de naissance
+        if (patient.getDateNaissance() != null && patient.getDateNaissance().isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("La date de naissance ne peut pas être dans le futur.");
+        }
+
+        // Vérifier l'unicité de l'email (sauf pour le patient actuel)
+        Patient patientWithSameEmail = patientDAO.findByEmail(patient.getEmail());
+        if (patientWithSameEmail != null && !patientWithSameEmail.getId().equals(patient.getId())) {
+            throw new IllegalArgumentException("L'email est déjà utilisé par un autre patient.");
+        }
+        
+        // Mettre à jour le patient (save/merge gère à la fois save et update)
+        return patientDAO.save(patient);
+    }
+
     // --- Méthodes simples (Pass-Through) ---
 
     public Patient findById(Long id) {

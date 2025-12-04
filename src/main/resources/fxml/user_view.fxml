@@ -10,7 +10,7 @@
       spacing="20" styleClass="form-container">
 
     <HBox spacing="20" alignment="CENTER_LEFT">
-        <Label text="👤 Gestion des Utilisateurs" styleClass="section-title"/>
+        <Label text="Gestion des Utilisateurs" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button text="+ Nouvel Utilisateur" styleClass="btn-primary" onAction="#handleNewUser"/>
     </HBox>
@@ -18,8 +18,8 @@
     <!-- Barre de Recherche -->
     <HBox spacing="15" alignment="CENTER_LEFT">
         <TextField fx:id="searchField" promptText="Rechercher un utilisateur..." styleClass="text-field" HBox.hgrow="ALWAYS"/>
-        <Button text="🔍 Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
-        <Button text="🔄 Actualiser" styleClass="btn-warning" onAction="#handleRefresh"/>
+        <Button text="Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
+        <Button text="Actualiser" styleClass="btn-warning" onAction="#handleRefresh"/>
     </HBox>
 
     <!-- Tableau des Utilisateurs -->

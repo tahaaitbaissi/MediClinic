@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import com.mediclinic.model.Patient;
 import com.mediclinic.model.Role;
 import com.mediclinic.service.PatientService;
@@ -16,6 +17,8 @@ import com.mediclinic.util.PermissionChecker;
 import com.mediclinic.util.UserSession;
 
 import java.net.URL;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class PatientController implements Initializable {
@@ -29,9 +32,23 @@ public class PatientController implements Initializable {
     @FXML private TextField searchField;
     @FXML private ComboBox<String> filterCombo;
     @FXML private Button addPatientBtn;
+    @FXML private Label totalPatientsLabel;
+    @FXML private Label pageInfoLabel;
+    @FXML private Button firstPageBtn;
+    @FXML private Button prevPageBtn;
+    @FXML private Button nextPageBtn;
+    @FXML private Button lastPageBtn;
+    @FXML private HBox statsBox;
+    @FXML private Label totalPatientsStatLabel;
+    @FXML private Label newPatientsMonthLabel;
+    @FXML private Label activePatientsLabel;
+    @FXML private Label patientsWithConsultLabel;
 
     private PatientService patientService;
     private ObservableList<Patient> patientList;
+    private ObservableList<Patient> allPatients;
+    private int currentPage = 1;
+    private int itemsPerPage = 20;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -57,6 +74,8 @@ public class PatientController implements Initializable {
         setupRoleBasedUI();
         loadPatients();
         setupSearchFilter();
+        updatePagination();
+        updateStatistics();
     }
     
     private void setupRoleBasedUI() {
@@ -83,9 +102,9 @@ public class PatientController implements Initializable {
 
         TableColumn<Patient, Void> colActions = new TableColumn<>("Actions");
         colActions.setCellFactory(param -> new TableCell<Patient, Void>() {
-            private final Button editBtn = new Button("✏️");
-            private final Button deleteBtn = new Button("🗑️");
-            private final Button detailsBtn = new Button("👁️");
+            private final Button editBtn = new Button("Modifier");
+            private final Button deleteBtn = new Button("Supprimer");
+            private final Button detailsBtn = new Button("Détails");
 
             {
                 editBtn.getStyleClass().add("btn-warning");
@@ -145,11 +164,131 @@ public class PatientController implements Initializable {
     private void loadPatients() {
         try {
             // Use findAllForCurrentUser() to apply role-based filtering
-            patientList = FXCollections.observableArrayList(patientService.findAllForCurrentUser());
-            patientTable.setItems(patientList);
+            allPatients = FXCollections.observableArrayList(patientService.findAllForCurrentUser());
+            patientList = allPatients;
+            updateTableWithPagination();
         } catch (Exception e) {
             showAlert("Erreur", "Erreur lors du chargement des patients: " + e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+    
+    private void updateTableWithPagination() {
+        int totalItems = patientList.size();
+        int totalPages = (int) Math.ceil((double) totalItems / itemsPerPage);
+        
+        // Ensure current page is valid
+        if (currentPage > totalPages && totalPages > 0) {
+            currentPage = totalPages;
+        }
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+        
+        // Calculate start and end indices
+        int startIndex = (currentPage - 1) * itemsPerPage;
+        int endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+        
+        // Get page items
+        if (startIndex < totalItems) {
+            List<Patient> pageItems = patientList.subList(startIndex, endIndex);
+            patientTable.setItems(FXCollections.observableArrayList(pageItems));
+        } else {
+            patientTable.setItems(FXCollections.observableArrayList());
+        }
+    }
+    
+    private void updatePagination() {
+        int totalItems = patientList != null ? patientList.size() : 0;
+        int totalPages = (int) Math.ceil((double) totalItems / itemsPerPage);
+        
+        if (totalPages == 0) totalPages = 1;
+        
+        if (pageInfoLabel != null) {
+            pageInfoLabel.setText("Page " + currentPage + " / " + totalPages);
+        }
+        if (totalPatientsLabel != null) {
+            totalPatientsLabel.setText(totalItems + " patient(s)");
+        }
+        
+        // Enable/disable navigation buttons
+        if (firstPageBtn != null) firstPageBtn.setDisable(currentPage <= 1);
+        if (prevPageBtn != null) prevPageBtn.setDisable(currentPage <= 1);
+        if (nextPageBtn != null) nextPageBtn.setDisable(currentPage >= totalPages);
+        if (lastPageBtn != null) lastPageBtn.setDisable(currentPage >= totalPages);
+    }
+    
+    private void updateStatistics() {
+        try {
+            Role role = UserSession.getInstance().getUser().getRole();
+            
+            // Only show statistics for ADMIN and SEC
+            if (statsBox != null) {
+                boolean canSeeStats = (role == Role.ADMIN || role == Role.SEC);
+                statsBox.setVisible(canSeeStats);
+                statsBox.setManaged(canSeeStats);
+                
+                if (canSeeStats && allPatients != null) {
+                    if (totalPatientsStatLabel != null) {
+                        totalPatientsStatLabel.setText(String.valueOf(allPatients.size()));
+                    }
+                    
+                    // Count new patients this month
+                    LocalDate firstDayOfMonth = LocalDate.now().withDayOfMonth(1);
+                    long newThisMonth = allPatients.stream()
+                        .filter(p -> p.getDateNaissance() != null) // Placeholder logic
+                        .count();
+                    if (newPatientsMonthLabel != null) {
+                        newPatientsMonthLabel.setText(String.valueOf(Math.min(newThisMonth, allPatients.size())));
+                    }
+                    
+                    // Active patients (all for now)
+                    if (activePatientsLabel != null) {
+                        activePatientsLabel.setText(String.valueOf(allPatients.size()));
+                    }
+                    
+                    // Patients with consultations (placeholder)
+                    if (patientsWithConsultLabel != null) {
+                        patientsWithConsultLabel.setText("N/A");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating statistics: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    private void handleFirstPage() {
+        currentPage = 1;
+        updateTableWithPagination();
+        updatePagination();
+    }
+    
+    @FXML
+    private void handlePrevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            updateTableWithPagination();
+            updatePagination();
+        }
+    }
+    
+    @FXML
+    private void handleNextPage() {
+        int totalPages = (int) Math.ceil((double) patientList.size() / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            updateTableWithPagination();
+            updatePagination();
+        }
+    }
+    
+    @FXML
+    private void handleLastPage() {
+        int totalPages = (int) Math.ceil((double) patientList.size() / itemsPerPage);
+        currentPage = Math.max(1, totalPages);
+        updateTableWithPagination();
+        updatePagination();
     }
 
     private void setupSearchFilter() {
@@ -166,18 +305,21 @@ public class PatientController implements Initializable {
     @FXML
     private void filterPatients(String searchText) {
         if (searchText == null || searchText.isEmpty()) {
-            patientTable.setItems(patientList);
+            patientList = allPatients;
         } else {
             ObservableList<Patient> filteredList = FXCollections.observableArrayList();
-            for (Patient patient : patientList) {
+            for (Patient patient : allPatients) {
                 if (patient.getNomComplet().toLowerCase().contains(searchText.toLowerCase()) ||
                         patient.getEmail().toLowerCase().contains(searchText.toLowerCase()) ||
                         patient.getTelephone().contains(searchText)) {
                     filteredList.add(patient);
                 }
             }
-            patientTable.setItems(filteredList);
+            patientList = filteredList;
         }
+        currentPage = 1;
+        updateTableWithPagination();
+        updatePagination();
     }
 
     @FXML
@@ -263,6 +405,8 @@ public class PatientController implements Initializable {
                 try {
                     patientService.createPatient(patient);
                     loadPatients();
+                    updatePagination();
+                    updateStatistics();
                     showAlert("Succès", "Patient ajouté avec succès!", Alert.AlertType.INFORMATION);
                 } catch (Exception e) {
                     showAlert("Erreur", "Erreur lors de l'ajout: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -281,7 +425,97 @@ public class PatientController implements Initializable {
             return;
         }
         
-        showAlert("Information", "Édition du patient: " + patient.getNomComplet(), Alert.AlertType.INFORMATION);
+        try {
+            Dialog<Patient> dialog = new Dialog<>();
+            dialog.setTitle("Modifier Patient");
+            dialog.setHeaderText("Modifier les informations du patient");
+
+            // Créer le formulaire pré-rempli
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+            TextField nomField = new TextField(patient.getNom());
+            nomField.setPromptText("Nom");
+            TextField prenomField = new TextField(patient.getPrenom());
+            prenomField.setPromptText("Prénom");
+            TextField emailField = new TextField(patient.getEmail());
+            emailField.setPromptText("Email");
+            TextField telephoneField = new TextField(patient.getTelephone());
+            telephoneField.setPromptText("Téléphone");
+            DatePicker dateNaissancePicker = new DatePicker(patient.getDateNaissance());
+            dateNaissancePicker.setPromptText("Date de naissance");
+            TextArea adresseArea = new TextArea(patient.getAdresse() != null ? patient.getAdresse() : "");
+            adresseArea.setPromptText("Adresse");
+            adresseArea.setPrefRowCount(3);
+
+            grid.add(new Label("Nom:"), 0, 0);
+            grid.add(nomField, 1, 0);
+            grid.add(new Label("Prénom:"), 0, 1);
+            grid.add(prenomField, 1, 1);
+            grid.add(new Label("Email:"), 0, 2);
+            grid.add(emailField, 1, 2);
+            grid.add(new Label("Téléphone:"), 0, 3);
+            grid.add(telephoneField, 1, 3);
+            grid.add(new Label("Date naissance:"), 0, 4);
+            grid.add(dateNaissancePicker, 1, 4);
+            grid.add(new Label("Adresse:"), 0, 5);
+            grid.add(adresseArea, 1, 5);
+
+            dialog.getDialogPane().setContent(grid);
+
+            ButtonType saveButtonType = new ButtonType("Enregistrer", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+            Node saveButton = dialog.getDialogPane().lookupButton(saveButtonType);
+            saveButton.setDisable(false);
+
+            javafx.beans.value.ChangeListener<String> changeListener = (observable, oldValue, newValue) -> {
+                saveButton.setDisable(
+                        nomField.getText().trim().isEmpty() ||
+                                prenomField.getText().trim().isEmpty() ||
+                                emailField.getText().trim().isEmpty() ||
+                                telephoneField.getText().trim().isEmpty()
+                );
+            };
+
+            nomField.textProperty().addListener(changeListener);
+            prenomField.textProperty().addListener(changeListener);
+            emailField.textProperty().addListener(changeListener);
+            telephoneField.textProperty().addListener(changeListener);
+
+            dialog.setResultConverter(dialogButton -> {
+                if (dialogButton == saveButtonType) {
+                    patient.setNom(nomField.getText());
+                    patient.setPrenom(prenomField.getText());
+                    patient.setEmail(emailField.getText());
+                    patient.setTelephone(telephoneField.getText());
+                    patient.setAdresse(adresseArea.getText());
+                    if (dateNaissancePicker.getValue() != null) {
+                        patient.setDateNaissance(dateNaissancePicker.getValue());
+                    }
+                    return patient;
+                }
+                return null;
+            });
+
+            java.util.Optional<Patient> result = dialog.showAndWait();
+            result.ifPresent(updatedPatient -> {
+                try {
+                    patientService.updatePatient(updatedPatient);
+                    loadPatients();
+                    updatePagination();
+                    updateStatistics();
+                    showAlert("Succès", "Patient modifié avec succès!", Alert.AlertType.INFORMATION);
+                } catch (Exception e) {
+                    showAlert("Erreur", "Erreur lors de la modification: " + e.getMessage(), Alert.AlertType.ERROR);
+                }
+            });
+
+        } catch (Exception e) {
+            showAlert("Erreur", "Erreur lors de l'ouverture du formulaire: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     private void deletePatient(Patient patient) {
@@ -301,6 +535,8 @@ public class PatientController implements Initializable {
             try {
                 patientService.deletePatient(patient.getId());
                 loadPatients();
+                updatePagination();
+                updateStatistics();
                 showAlert("Succès", "Patient supprimé avec succès!", Alert.AlertType.INFORMATION);
             } catch (Exception e) {
                 showAlert("Erreur", "Erreur lors de la suppression: " + e.getMessage(), Alert.AlertType.ERROR);

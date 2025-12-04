@@ -93,7 +93,7 @@ public class BillingController implements Initializable {
         colStatus.setCellValueFactory(cellData -> {
             boolean payee = cellData.getValue().isEstPayee();
             return new javafx.beans.property.SimpleStringProperty(
-                payee ? "✅ Payée" : "⏰ En attente"
+                payee ? "Payée" : "En attente"
             );
         });
         
@@ -108,9 +108,9 @@ public class BillingController implements Initializable {
         TableColumn<Facture, Void> colActions = new TableColumn<>("Actions");
         colActions.setPrefWidth(200);
         colActions.setCellFactory(param -> new TableCell<Facture, Void>() {
-            private final Button viewBtn = new Button("👁️");
-            private final Button payBtn = new Button("💰");
-            private final Button printBtn = new Button("🖨️");
+            private final Button viewBtn = new Button("Détails");
+            private final Button payBtn = new Button("Marquer payée");
+            private final Button printBtn = new Button("Imprimer");
 
             {
                 viewBtn.getStyleClass().add("btn-primary");

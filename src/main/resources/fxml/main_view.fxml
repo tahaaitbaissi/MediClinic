@@ -3,69 +3,127 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
 
 <BorderPane xmlns="http://javafx.com/javafx/11.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.mediclinic.controller.MainController"
             stylesheets="@../css/style.css"
-            styleClass="background">
+            styleClass="app-background">
 
     <top>
-        <VBox>
-            <!-- Header -->
-            <HBox styleClass="container" spacing="20" alignment="CENTER_LEFT">
-                <HBox spacing="15" alignment="CENTER_LEFT">
-                    <Label text="🏥" style="-fx-font-size: 32;"/>
-                    <VBox>
-                        <Label text="MediClinic" styleClass="title"/>
-                        <Label text="Gestion Médicale Complète" style="-fx-text-fill: #7f8c8d; -fx-font-size: 14;"/>
+        <VBox style="-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 8, 0, 0, 2);">
+            
+            <!-- Header Bar -->
+            <HBox spacing="20" alignment="CENTER_LEFT" style="-fx-padding: 20 32;">
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <VBox spacing="2">
+                        <Label text="MediClinic" 
+                               style="-fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: #1f2937;"/>
+                        <Label text="Système de Gestion Médicale" 
+                               style="-fx-text-fill: #6b7280; -fx-font-size: 13px;"/>
                     </VBox>
                 </HBox>
 
                 <Region HBox.hgrow="ALWAYS"/>
 
-                <HBox spacing="10" alignment="CENTER_RIGHT">
-                    <Label fx:id="userInfoLabel" text="Utilisateur" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                    <Button text="Déconnexion" styleClass="btn-danger" fx:id="logoutBtn" onAction="#handleLogout"/>
+                <!-- User Info Section -->
+                <HBox spacing="16" alignment="CENTER_RIGHT">
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label fx:id="userInfoLabel" 
+                               text="Utilisateur" 
+                               style="-fx-font-weight: 700; -fx-text-fill: #1f2937; -fx-font-size: 14px;"/>
+                        <Label text="En ligne" 
+                               style="-fx-text-fill: #10b981; -fx-font-size: 12px; -fx-font-weight: 600;"/>
+                    </VBox>
+                    <Button text="Déconnexion" 
+                            styleClass="btn-danger" 
+                            fx:id="logoutBtn" 
+                            onAction="#handleLogout"
+                            style="-fx-padding: 10 20;"/>
                 </HBox>
             </HBox>
 
-            <!-- Menu Navigation -->
-            <HBox styleClass="container" spacing="0">
-                <HBox spacing="0">
-                    <Button text="📊 Tableau de Bord" styleClass="sidebar-button"
-                            onAction="#showDashboard" fx:id="dashboardBtn"/>
-                    <Button text="👥 Patients" styleClass="sidebar-button"
-                            onAction="#showPatients" fx:id="patientsBtn"/>
-                    <Button text="📅 Agenda" styleClass="sidebar-button"
-                            onAction="#showAgenda" fx:id="agendaBtn"/>
-                    <Button text="👨‍⚕️ Médecins" styleClass="sidebar-button"
-                            onAction="#showDoctors" fx:id="doctorsBtn"/>
-                    <Button text="💰 Facturation" styleClass="sidebar-button"
-                            onAction="#showBilling" fx:id="billingBtn"/>
-                    <Button text="👤 Utilisateurs" styleClass="sidebar-button"
-                            onAction="#showUsers" fx:id="usersBtn"/>
-                </HBox>
+            <!-- Navigation Menu Bar -->
+            <HBox spacing="0" style="-fx-padding: 0 24 0 24; -fx-background-color: #f9fafb; -fx-border-color: transparent transparent #e5e7eb transparent; -fx-border-width: 0 0 1 0;">
+                <Button text="Tableau de Bord" 
+                        styleClass="sidebar-button"
+                        onAction="#showDashboard" 
+                        fx:id="dashboardBtn"/>
+                <Button text="Patients" 
+                        styleClass="sidebar-button"
+                        onAction="#showPatients" 
+                        fx:id="patientsBtn"/>
+                <Button text="Agenda" 
+                        styleClass="sidebar-button"
+                        onAction="#showAgenda" 
+                        fx:id="agendaBtn"/>
+                <Button text="Médecins" 
+                        styleClass="sidebar-button"
+                        onAction="#showDoctors" 
+                        fx:id="doctorsBtn"/>
+                <Button text="Facturation" 
+                        styleClass="sidebar-button"
+                        onAction="#showBilling" 
+                        fx:id="billingBtn"/>
+                <Button text="Utilisateurs" 
+                        styleClass="sidebar-button"
+                        onAction="#showUsers" 
+                        fx:id="usersBtn"/>
             </HBox>
         </VBox>
     </top>
 
     <center>
-        <StackPane fx:id="contentArea" styleClass="container">
-            <!-- Le contenu dynamique sera chargé ici -->
-            <VBox alignment="CENTER" spacing="20">
-                <Label text="🏥 Bienvenue dans MediClinic" styleClass="title"/>
-                <Label text="Sélectionnez une section dans le menu ci-dessus"
-                       style="-fx-text-fill: #7f8c8d; -fx-font-size: 16;"/>
-            </VBox>
-        </StackPane>
+        <!-- Content Area with ScrollPane for overflow -->
+        <ScrollPane fitToWidth="true" fitToHeight="true" 
+                    style="-fx-background-color: transparent; -fx-border-width: 0;">
+            <StackPane fx:id="contentArea" style="-fx-padding: 24;">
+                <!-- Default Welcome Screen -->
+                <VBox alignment="CENTER" spacing="24" style="-fx-padding: 48;">
+                    <VBox alignment="CENTER" spacing="12">
+                        <Label text="Bienvenue dans MediClinic" 
+                               styleClass="title" 
+                               style="-fx-font-size: 32px;"/>
+                        <Label text="Sélectionnez une section dans le menu ci-dessus pour commencer"
+                               style="-fx-text-fill: #6b7280; -fx-font-size: 16px;"/>
+                    </VBox>
+                    
+                    <!-- Quick Access Cards -->
+                    <HBox spacing="20" alignment="CENTER" style="-fx-padding: 32 0 0 0;">
+                        <VBox styleClass="card" spacing="12" alignment="CENTER" 
+                              style="-fx-padding: 24; -fx-min-width: 180; -fx-cursor: hand;">
+                            <Label text="Dashboard" 
+                                   style="-fx-font-weight: 600; -fx-font-size: 16px; -fx-text-fill: #1f2937;"/>
+                            <Label text="Vue d'ensemble" 
+                                   style="-fx-text-fill: #6b7280; -fx-font-size: 13px;"/>
+                        </VBox>
+                        
+                        <VBox styleClass="card" spacing="12" alignment="CENTER" 
+                              style="-fx-padding: 24; -fx-min-width: 180; -fx-cursor: hand;">
+                            <Label text="Patients" 
+                                   style="-fx-font-weight: 600; -fx-font-size: 16px; -fx-text-fill: #1f2937;"/>
+                            <Label text="Gestion complète" 
+                                   style="-fx-text-fill: #6b7280; -fx-font-size: 13px;"/>
+                        </VBox>
+                        
+                        <VBox styleClass="card" spacing="12" alignment="CENTER" 
+                              style="-fx-padding: 24; -fx-min-width: 180; -fx-cursor: hand;">
+                            <Label text="Agenda" 
+                                   style="-fx-font-weight: 600; -fx-font-size: 16px; -fx-text-fill: #1f2937;"/>
+                            <Label text="Rendez-vous" 
+                                   style="-fx-text-fill: #6b7280; -fx-font-size: 13px;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </StackPane>
+        </ScrollPane>
     </center>
 
     <bottom>
-        <HBox styleClass="container" alignment="CENTER">
-            <Label text="© 2024 MediClinic - Système de Gestion Médicale"
-                   style="-fx-text-fill: #7f8c8d; -fx-font-size: 12;"/>
+        <HBox alignment="CENTER" 
+              style="-fx-padding: 16; -fx-background-color: white; -fx-border-color: #e5e7eb transparent transparent transparent; -fx-border-width: 1 0 0 0;">
+            <Label text="© 2024 MediClinic - Système de Gestion Médicale Professionnelle"
+                   style="-fx-text-fill: #9ca3af; -fx-font-size: 12px;"/>
         </HBox>
     </bottom>
 

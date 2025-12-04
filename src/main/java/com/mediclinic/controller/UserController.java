@@ -58,9 +58,9 @@ public class UserController implements Initializable {
         TableColumn<User, Void> colActions = new TableColumn<>("Actions");
         colActions.setPrefWidth(150);
         colActions.setCellFactory(param -> new TableCell<User, Void>() {
-            private final Button editBtn = new Button("✏️");
-            private final Button passwordBtn = new Button("🔑");
-            private final Button deleteBtn = new Button("🗑️");
+            private final Button editBtn = new Button("Modifier");
+            private final Button passwordBtn = new Button("Mot de passe");
+            private final Button deleteBtn = new Button("Supprimer");
 
             {
                 editBtn.getStyleClass().add("btn-warning");

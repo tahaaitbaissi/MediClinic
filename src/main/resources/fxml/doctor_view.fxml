@@ -10,7 +10,7 @@
       spacing="20" styleClass="form-container">
 
     <HBox spacing="20" alignment="CENTER_LEFT">
-        <Label text="👨‍⚕️ Gestion des Médecins" styleClass="section-title"/>
+        <Label text="Gestion des Médecins" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button text="+ Nouveau Médecin" styleClass="btn-primary" onAction="#handleAddDoctor"/>
     </HBox>
@@ -19,8 +19,8 @@
     <HBox spacing="15" alignment="CENTER_LEFT">
         <TextField fx:id="searchField" promptText="Rechercher un médecin..." styleClass="text-field" HBox.hgrow="ALWAYS"/>
         <ComboBox fx:id="specialtyCombo" promptText="Spécialité" styleClass="combo-box"/>
-        <Button text="🔍 Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
-        <Button text="📊 Exporter" styleClass="btn-success" onAction="#handleExportDoctors"/>
+        <Button text="Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
+        <Button text="Exporter" styleClass="btn-success" onAction="#handleExportDoctors"/>
     </HBox>
 
     <!-- Tableau des Médecins -->

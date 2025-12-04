@@ -22,9 +22,15 @@ public class MainController {
     @FXML private Button dashboardBtn, patientsBtn, agendaBtn, doctorsBtn, billingBtn, usersBtn;
     @FXML private Label userInfoLabel;
     @FXML private Button logoutBtn;
+    
+    // Singleton instance for navigation from other controllers
+    private static MainController instance;
 
     @FXML
     public void initialize() {
+        // Set singleton instance
+        instance = this;
+        
         // Check authentication
         if (!UserSession.isAuthenticated()) {
             redirectToLogin();
@@ -39,6 +45,34 @@ public class MainController {
         
         // Show dashboard
         showDashboard();
+    }
+    
+    /**
+     * Get the singleton instance for navigation
+     */
+    public static MainController getInstance() {
+        return instance;
+    }
+    
+    /**
+     * Public method to show patient view
+     */
+    public void showPatientView() {
+        showPatients();
+    }
+    
+    /**
+     * Public method to show agenda view
+     */
+    public void showAgendaView() {
+        showAgenda();
+    }
+    
+    /**
+     * Public method to show billing view
+     */
+    public void showBillingView() {
+        showBilling();
     }
 
     private void updateUserInfo() {

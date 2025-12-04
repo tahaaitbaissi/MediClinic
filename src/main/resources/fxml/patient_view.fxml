@@ -11,7 +11,7 @@
       spacing="20" styleClass="form-container">
 
     <HBox spacing="20" alignment="CENTER_LEFT">
-        <Label text="👥 Gestion des Patients" styleClass="section-title"/>
+        <Label text="Gestion des Patients" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button text="+ Nouveau Patient" styleClass="btn-primary" onAction="#showAddPatientForm" fx:id="addPatientBtn"/>
     </HBox>
@@ -20,42 +20,34 @@
     <HBox spacing="15" alignment="CENTER_LEFT">
         <TextField fx:id="searchField" promptText="Rechercher un patient..." styleClass="text-field" HBox.hgrow="ALWAYS"/>
         <ComboBox fx:id="filterCombo" promptText="Filtrer par" styleClass="combo-box"/>
-        <Button text="🔍 Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
+        <Button text="Rechercher" styleClass="btn-primary" onAction="#handleSearch"/>
     </HBox>
 
     <!-- Statistiques Patients -->
-    <HBox spacing="15">
-        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
-            <Label text="👥" styleClass="stats-icon"/>
-            <VBox>
-                <Label text="156" styleClass="stats-number"/>
-                <Label text="Patients Totaux" styleClass="stats-label"/>
-            </VBox>
-        </HBox>
+    <HBox fx:id="statsBox" spacing="15" managed="false" visible="false">
+        <VBox styleClass="stats-card" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="PATIENTS TOTAUX" styleClass="stats-category"/>
+            <Label fx:id="totalPatientsStatLabel" text="0" styleClass="stats-number"/>
+            <Label text="Enregistrés" styleClass="stats-label"/>
+        </VBox>
 
-        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
-            <Label text="📅" styleClass="stats-icon"/>
-            <VBox>
-                <Label text="12" styleClass="stats-number"/>
-                <Label text="Nouveaux Ce Mois" styleClass="stats-label"/>
-            </VBox>
-        </HBox>
+        <VBox styleClass="stats-card" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="NOUVEAUX" styleClass="stats-category"/>
+            <Label fx:id="newPatientsMonthLabel" text="0" styleClass="stats-number"/>
+            <Label text="Ce Mois" styleClass="stats-label"/>
+        </VBox>
 
-        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
-            <Label text="✅" styleClass="stats-icon"/>
-            <VBox>
-                <Label text="143" styleClass="stats-number"/>
-                <Label text="Patients Actifs" styleClass="stats-label"/>
-            </VBox>
-        </HBox>
+        <VBox styleClass="stats-card" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="ACTIFS" styleClass="stats-category"/>
+            <Label fx:id="activePatientsLabel" text="0" styleClass="stats-number"/>
+            <Label text="En suivi" styleClass="stats-label"/>
+        </VBox>
 
-        <HBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS">
-            <Label text="🎂" styleClass="stats-icon"/>
-            <VBox>
-                <Label text="3" styleClass="stats-number"/>
-                <Label text="Anniversaires" styleClass="stats-label"/>
-            </VBox>
-        </HBox>
+        <VBox styleClass="stats-card" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="CONSULTATIONS" styleClass="stats-category"/>
+            <Label fx:id="patientsWithConsultLabel" text="0" styleClass="stats-number"/>
+            <Label text="Total" styleClass="stats-label"/>
+        </VBox>
     </HBox>
 
     <!-- Tableau des Patients -->
@@ -71,10 +63,12 @@
 
     <!-- Pagination -->
     <HBox spacing="15" alignment="CENTER">
-        <Button text="◀◀" styleClass="btn-warning"/>
-        <Label text="Page 1 sur 8" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-        <Button text="▶▶" styleClass="btn-warning"/>
-        <Label text="156 patients" style="-fx-text-fill: #7f8c8d;"/>
+        <Button fx:id="firstPageBtn" text="Début" styleClass="btn-warning" onAction="#handleFirstPage"/>
+        <Button fx:id="prevPageBtn" text="Précédent" styleClass="btn-warning" onAction="#handlePrevPage"/>
+        <Label fx:id="pageInfoLabel" text="Page 1" style="-fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+        <Button fx:id="nextPageBtn" text="Suivant" styleClass="btn-warning" onAction="#handleNextPage"/>
+        <Button fx:id="lastPageBtn" text="Fin" styleClass="btn-warning" onAction="#handleLastPage"/>
+        <Label fx:id="totalPatientsLabel" text="0 patients" style="-fx-text-fill: #7f8c8d;"/>
     </HBox>
 
 </VBox>

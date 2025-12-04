@@ -69,9 +69,9 @@ public class DoctorController implements Initializable {
         TableColumn<Medecin, Void> colActions = new TableColumn<>("Actions");
         colActions.setPrefWidth(150);
         colActions.setCellFactory(param -> new TableCell<Medecin, Void>() {
-            private final Button viewBtn = new Button("👁️");
-            private final Button editBtn = new Button("✏️");
-            private final Button deleteBtn = new Button("🗑️");
+            private final Button viewBtn = new Button("Détails");
+            private final Button editBtn = new Button("Modifier");
+            private final Button deleteBtn = new Button("Supprimer");
 
             {
                 viewBtn.getStyleClass().add("btn-primary");

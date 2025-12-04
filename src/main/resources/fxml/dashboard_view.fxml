@@ -8,45 +8,45 @@
 <VBox xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mediclinic.controller.DashboardController"
-      spacing="20" styleClass="form-container">
+      spacing="24" styleClass="form-container">
 
-    <HBox spacing="20" alignment="CENTER_LEFT">
-        <Label text="📊 Tableau de Bord" styleClass="section-title"/>
+    <HBox spacing="24" alignment="CENTER_LEFT" style="-fx-padding: 0 0 16 0;">
+        <Label text="Tableau de Bord" styleClass="section-title"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="🔄 Actualiser" styleClass="btn-primary" onAction="#handleRefreshDashboard"/>
+        <Button text="Actualiser" styleClass="btn-primary" onAction="#handleRefreshDashboard" style="-fx-padding: 12 24;"/>
     </HBox>
 
     <!-- Statistiques Principales -->
-    <HBox spacing="15">
-        <VBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS" alignment="CENTER">
-            <Label text="👥" styleClass="stats-icon"/>
-            <Label fx:id="totalPatientsLabel" text="156" styleClass="stats-number"/>
-            <Label text="Patients Totaux" styleClass="stats-label"/>
+    <HBox spacing="20">
+        <VBox styleClass="stats-card" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="PATIENTS" styleClass="stats-category"/>
+            <Label fx:id="totalPatientsLabel" text="0" styleClass="stats-number"/>
+            <Label text="Total" styleClass="stats-label"/>
         </VBox>
 
-        <VBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS" alignment="CENTER">
-            <Label text="📅" styleClass="stats-icon"/>
-            <Label fx:id="todayAppointmentsLabel" text="12" styleClass="stats-number"/>
-            <Label text="RDV Aujourd'hui" styleClass="stats-label"/>
+        <VBox styleClass="stats-card" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="RENDEZ-VOUS" styleClass="stats-category"/>
+            <Label fx:id="todayAppointmentsLabel" text="0" styleClass="stats-number"/>
+            <Label text="Aujourd'hui" styleClass="stats-label"/>
         </VBox>
 
-        <VBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS" alignment="CENTER">
-            <Label text="💰" styleClass="stats-icon"/>
-            <Label fx:id="monthlyRevenueLabel" text="8,450 €" styleClass="stats-number"/>
-            <Label text="Revenu Mensuel" styleClass="stats-label"/>
+        <VBox styleClass="stats-card" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="REVENUS" styleClass="stats-category"/>
+            <Label fx:id="monthlyRevenueLabel" text="0 €" styleClass="stats-number"/>
+            <Label text="Ce Mois" styleClass="stats-label"/>
         </VBox>
 
-        <VBox styleClass="stats-card" spacing="10" HBox.hgrow="ALWAYS" alignment="CENTER">
-            <Label text="👨‍⚕️" styleClass="stats-icon"/>
-            <Label fx:id="activeDoctorsLabel" text="5" styleClass="stats-number"/>
-            <Label text="Médecins Actifs" styleClass="stats-label"/>
+        <VBox styleClass="stats-card" spacing="8" HBox.hgrow="ALWAYS" alignment="CENTER">
+            <Label text="MÉDECINS" styleClass="stats-category"/>
+            <Label fx:id="activeDoctorsLabel" text="0" styleClass="stats-number"/>
+            <Label text="Actifs" styleClass="stats-label"/>
         </VBox>
     </HBox>
 
     <!-- Graphiques -->
     <HBox spacing="15" VBox.vgrow="ALWAYS">
         <VBox styleClass="card" spacing="15" HBox.hgrow="ALWAYS">
-            <Label text="📈 Rendez-vous Hebdomadaires" styleClass="subtitle"/>
+            <Label text="Rendez-vous Hebdomadaires" styleClass="subtitle"/>
             <BarChart fx:id="appointmentsChart" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                 <xAxis>
                     <CategoryAxis label="Jours"/>
@@ -58,29 +58,32 @@
         </VBox>
 
         <VBox styleClass="card" spacing="15" HBox.hgrow="ALWAYS">
-            <Label text="⚡ Actions Rapides" styleClass="subtitle"/>
+            <Label text="Actions Rapides" styleClass="subtitle"/>
             <VBox spacing="10">
-                <Button text="➕ Nouveau Patient" styleClass="btn-success" onAction="#handleQuickPatient"
+                <Button fx:id="quickPatientBtn" text="Nouveau Patient" styleClass="btn-success" onAction="#handleQuickPatient"
                         HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                <Button text="📅 Planifier RDV" styleClass="btn-primary" onAction="#handleQuickAppointment"
+                <Button fx:id="quickAppointmentBtn" text="Planifier RDV" styleClass="btn-primary" onAction="#handleQuickAppointment"
                         HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                <Button text="💰 Créer Facture" styleClass="btn-warning"
+                <Button fx:id="quickInvoiceBtn" text="Créer Facture" styleClass="btn-warning" onAction="#handleQuickInvoice"
                         HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                <Button text="📊 Voir Rapports" styleClass="btn-primary"
+                <Button text="Voir Rapports" styleClass="btn-primary" onAction="#handleViewReports"
                         HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
             </VBox>
         </VBox>
     </HBox>
 
-    <!-- Dernières Activités -->
-    <VBox styleClass="card" spacing="15">
-        <Label text="🕐 Dernières Activités" styleClass="subtitle"/>
-        <TableView styleClass="table-view" prefHeight="200">
+    <!-- Rendez-vous d'aujourd'hui -->
+    <VBox styleClass="card" spacing="10" VBox.vgrow="ALWAYS" minHeight="250">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Rendez-vous d'Aujourd'hui" styleClass="subtitle" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="todayApptCountLabel" text="(0)" styleClass="stats-label"/>
+        </HBox>
+        <TableView fx:id="upcomingAppointmentsTable" styleClass="table-view" VBox.vgrow="ALWAYS" minHeight="200" editable="false">
             <columns>
-                <TableColumn text="Heure" prefWidth="100"/>
-                <TableColumn text="Action" prefWidth="200"/>
-                <TableColumn text="Détails" prefWidth="300"/>
-                <TableColumn text="Utilisateur" prefWidth="150"/>
+                <TableColumn fx:id="colUpcomingTime" text="Heure" minWidth="80" prefWidth="100" sortable="false" resizable="true"/>
+                <TableColumn fx:id="colUpcomingPatient" text="Patient" minWidth="100" prefWidth="150" sortable="false" resizable="true"/>
+                <TableColumn fx:id="colUpcomingDoctor" text="Médecin" minWidth="100" prefWidth="150" sortable="false" resizable="true"/>
+                <TableColumn fx:id="colUpcomingMotif" text="Motif" minWidth="150" prefWidth="250" sortable="false" resizable="true"/>
             </columns>
         </TableView>
     </VBox>

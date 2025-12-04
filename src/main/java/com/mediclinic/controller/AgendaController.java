@@ -36,6 +36,10 @@ public class AgendaController implements Initializable {
     @FXML private TableColumn<RendezVous, String> colMotif;
     @FXML private TableColumn<RendezVous, String> colStatus;
     @FXML private Button newAppointmentBtn;
+    @FXML private Label todayAppointmentsStatLabel;
+    @FXML private Label plannedAppointmentsLabel;
+    @FXML private Label completedAppointmentsLabel;
+    @FXML private Label cancelledAppointmentsLabel;
 
     private RendezVousService rendezVousService;
     private PatientService patientService;
@@ -70,6 +74,50 @@ public class AgendaController implements Initializable {
         setupFilters();
         setupRoleBasedUI();
         loadAppointments();
+        updateStatistics();
+    }
+    
+    private void updateStatistics() {
+        try {
+            List<RendezVous> allAppointments = rendezVousService.findAllForCurrentUser();
+            LocalDate today = LocalDate.now();
+            
+            // Count today's appointments
+            long todayCount = allAppointments.stream()
+                .filter(rdv -> rdv.getDateHeureDebut() != null && 
+                              rdv.getDateHeureDebut().toLocalDate().equals(today))
+                .count();
+            
+            // Count by status
+            long plannedCount = allAppointments.stream()
+                .filter(rdv -> rdv.getStatus() == RendezVousStatus.PLANIFIE || 
+                              rdv.getStatus() == RendezVousStatus.CONFIRME)
+                .count();
+            
+            long completedCount = allAppointments.stream()
+                .filter(rdv -> rdv.getStatus() == RendezVousStatus.TERMINE)
+                .count();
+            
+            long cancelledCount = allAppointments.stream()
+                .filter(rdv -> rdv.getStatus() == RendezVousStatus.ANNULE)
+                .count();
+            
+            // Update labels
+            if (todayAppointmentsStatLabel != null) {
+                todayAppointmentsStatLabel.setText(String.valueOf(todayCount));
+            }
+            if (plannedAppointmentsLabel != null) {
+                plannedAppointmentsLabel.setText(String.valueOf(plannedCount));
+            }
+            if (completedAppointmentsLabel != null) {
+                completedAppointmentsLabel.setText(String.valueOf(completedCount));
+            }
+            if (cancelledAppointmentsLabel != null) {
+                cancelledAppointmentsLabel.setText(String.valueOf(cancelledCount));
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating statistics: " + e.getMessage());
+        }
     }
     
     private void setupRoleBasedUI() {
@@ -128,10 +176,10 @@ public class AgendaController implements Initializable {
         // Add actions column
         TableColumn<RendezVous, Void> colActions = new TableColumn<>("Actions");
         colActions.setCellFactory(param -> new TableCell<RendezVous, Void>() {
-            private final Button viewBtn = new Button("👁️");
-            private final Button confirmBtn = new Button("✓");
-            private final Button completeBtn = new Button("✅");
-            private final Button cancelBtn = new Button("❌");
+            private final Button viewBtn = new Button("Détails");
+            private final Button confirmBtn = new Button("Confirmer");
+            private final Button completeBtn = new Button("Terminer");
+            private final Button cancelBtn = new Button("Annuler");
 
             {
                 viewBtn.getStyleClass().add("btn-primary");
@@ -412,6 +460,7 @@ public class AgendaController implements Initializable {
                 try {
                     rendezVousService.planifierRendezVous(rdv);
                     loadAppointments();
+                    updateStatistics();
                     showAlert("Succès", "Rendez-vous créé avec succès!", Alert.AlertType.INFORMATION);
                 } catch (Exception e) {
                     showAlert("Erreur", "Erreur lors de la création: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -462,6 +511,7 @@ public class AgendaController implements Initializable {
                     // Utiliser la nouvelle méthode avec ID pour éviter les entités détachées
                     rendezVousService.updateStatus(rdv.getId(), newStatus);
                     loadAppointments();
+                    updateStatistics();
                     showAlert("Succès", "Statut mis à jour avec succès!", Alert.AlertType.INFORMATION);
                 } catch (SecurityException e) {
                     showAlert("Accès refusé", e.getMessage(), Alert.AlertType.WARNING);
@@ -496,6 +546,7 @@ public class AgendaController implements Initializable {
                 try {
                     rendezVousService.terminerRendezVous(rdv.getId());
                     loadAppointments();
+                    updateStatistics();
                     showAlert("Succès", "Rendez-vous terminé et consultation créée!", Alert.AlertType.INFORMATION);
                 } catch (SecurityException e) {
                     showAlert("Accès refusé", e.getMessage(), Alert.AlertType.WARNING);
@@ -526,7 +577,8 @@ public class AgendaController implements Initializable {
     @FXML
     private void handleRefresh() {
         loadAppointments();
-        showAlert("Actualisation", "Agenda actualisé", Alert.AlertType.INFORMATION);
+        updateStatistics();
+        showAlert("Actualisation", "Agenda actualisé avec succès!", Alert.AlertType.INFORMATION);
     }
 
     @FXML
