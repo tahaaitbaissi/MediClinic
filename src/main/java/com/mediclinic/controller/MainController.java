@@ -84,16 +84,16 @@ public class MainController {
             String roleLabel = "";
             switch (role) {
                 case ADMIN:
-                    roleLabel = "🔑 Administrateur";
+                    roleLabel = "Administrateur";
                     break;
                 case MEDECIN:
-                    roleLabel = "👨‍⚕️ Médecin";
+                    roleLabel = "Médecin";
                     if (session.getUser().getMedecin() != null) {
                         username = "Dr. " + session.getUser().getMedecin().getNomComplet();
                     }
                     break;
                 case SEC:
-                    roleLabel = "📋 Secrétaire";
+                    roleLabel = "Secrétaire";
                     break;
             }
             
