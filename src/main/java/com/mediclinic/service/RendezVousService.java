@@ -50,10 +50,23 @@ public class RendezVousService {
         
         User user = UserSession.getInstance().getUser();
         Role role = user.getRole();
-        
+
         // SEC and ADMIN can create appointments
-        if (role != Role.SEC && role != Role.ADMIN) {
+        if (role != Role.SEC && role != Role.ADMIN && role != Role.MEDECIN) {
             throw new SecurityException("Vous n'avez pas la permission de créer un rendez-vous.");
+        }
+
+        // Check if SEC is trying to create appointment for their associated doctor
+        if (role == Role.SEC) {
+            Medecin userMedecin = user.getMedecin();
+            if (userMedecin == null) {
+                throw new SecurityException("Secrétaire non associée à un médecin.");
+            }
+            
+            // SEC can only create appointments for their associated doctor
+            if (rdv.getMedecin() == null || !rdv.getMedecin().getId().equals(userMedecin.getId())) {
+                throw new SecurityException("Vous ne pouvez créer des rendez-vous que pour le médecin associé.");
+            }
         }
 
         // 1. Validation des dates
@@ -207,9 +220,17 @@ public class RendezVousService {
         User user = UserSession.getInstance().getUser();
         Role role = user.getRole();
         
-        if (role == Role.ADMIN || role == Role.SEC) {
-            // ADMIN and SEC see all appointments
+        if (role == Role.ADMIN) {
+            // ADMIN sees all appointments
             return rdvDAO.findAllWithDetails();
+        } else if (role == Role.SEC) {
+            // SEC sees only appointments for their associated doctor
+            Medecin medecin = user.getMedecin();
+            if (medecin == null) {
+                // SEC must be associated with a doctor
+                return List.of();
+            }
+            return rdvDAO.findByMedecin(medecin);
         } else if (role == Role.MEDECIN) {
             // Doctors see only their appointments
             Medecin medecin = user.getMedecin();
@@ -279,9 +300,19 @@ public class RendezVousService {
         User user = UserSession.getInstance().getUser();
         Role role = user.getRole();
         
-        // ADMIN and SEC can modify any appointment
-        if (role == Role.ADMIN || role == Role.SEC) {
+        // ADMIN can modify any appointment
+        if (role == Role.ADMIN) {
             return true;
+        }
+        
+        // SEC can only modify appointments for their associated doctor
+        if (role == Role.SEC) {
+            RendezVous rdv = rdvDAO.findById(rdvId);
+            if (rdv == null) {
+                return false;
+            }
+            Medecin userMedecin = user.getMedecin();
+            return userMedecin != null && userMedecin.getId().equals(rdv.getMedecin().getId());
         }
         
         // Doctors can only modify their own appointments

@@ -3,6 +3,7 @@ package com.mediclinic.service;
 import com.mediclinic.dao.UserDAO;
 import com.mediclinic.model.Role;
 import com.mediclinic.model.User;
+import com.mediclinic.model.Medecin;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
@@ -13,6 +14,26 @@ public class UserService {
 
     public UserService() {
         this.userDAO = new UserDAO();
+    }
+
+
+    /**
+     * Crée un utilisateur avec username, mot de passe, rôle et médecin associé
+     */
+    public User createUserWithPasswordAndMedecin(String username, String plainPassword, Role role, Medecin medecin) {
+        if (userDAO.findByUsername(username) != null) {
+            throw new IllegalArgumentException("Ce nom d'utilisateur est déjà pris.");
+        }
+        
+        // Recharger le médecin pour s'assurer qu'il est attaché à la bonne session
+        if (medecin != null && medecin.getId() != null) {
+            medecin = new MedecinService().findById(medecin.getId());
+        }
+        
+        String hashed = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
+        User newUser = new User(username, hashed, role);
+        newUser.setMedecin(medecin);
+        return userDAO.save(newUser);
     }
 
     /**

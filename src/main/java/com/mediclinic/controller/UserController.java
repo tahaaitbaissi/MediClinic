@@ -13,6 +13,8 @@ import com.mediclinic.service.*;
 import com.mediclinic.util.PermissionChecker;
 import com.mediclinic.util.UserSession;
 
+import java.util.List;
+
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -25,7 +27,9 @@ public class UserController implements Initializable {
     @FXML private TextField searchField;
 
     private UserService userService;
+    private MedecinService medecinService;
     private ObservableList<User> userList;
+    private ObservableList<Medecin> medecinList;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -38,7 +42,7 @@ public class UserController implements Initializable {
         }
         
         userService = new UserService();
-        
+        medecinService = new MedecinService();
         setupTableColumns();
         loadUsers();
     }
@@ -110,6 +114,13 @@ public class UserController implements Initializable {
 
     @FXML
     private void handleNewUser() {
+        // Vérifier s'il y a des médecins disponibles
+        List<Medecin> medecins = medecinService.findAll();
+        if (medecins == null || medecins.isEmpty()) {
+            showAlert("Erreur", "Aucun médecin disponible. Veuillez d'abord créer un médecin.", Alert.AlertType.WARNING);
+            return;
+        }
+
         Dialog<User> dialog = new Dialog<>();
         dialog.setTitle("Nouvel Utilisateur");
         dialog.setHeaderText("Créer un nouvel utilisateur");
@@ -129,22 +140,76 @@ public class UserController implements Initializable {
         roleCombo.getItems().addAll(Role.values());
         roleCombo.setValue(Role.SEC);
 
+        // ComboBox pour le médecin
+        ComboBox<Medecin> medecinCombo = new ComboBox<>();
+        medecinList = FXCollections.observableArrayList(medecins);
+        medecinCombo.setItems(medecinList);
+        medecinCombo.setCellFactory(lv -> new ListCell<Medecin>() {
+            @Override
+            protected void updateItem(Medecin item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getNomComplet() + " (" + item.getSpecialite() + ")");
+            }
+        });
+        medecinCombo.setButtonCell(new ListCell<Medecin>() {
+            @Override
+            protected void updateItem(Medecin item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getNomComplet() + " (" + item.getSpecialite() + ")");
+            }
+        });
+
+        // Label informatif pour le médecin associé
+        Label medecinLabel = new Label("Médecin associé:");
+        Label infoLabel = new Label("(Requis pour SEC et MEDECIN)");
+        infoLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #666;");
+
         grid.add(new Label("Nom d'utilisateur:"), 0, 0);
         grid.add(usernameField, 1, 0);
         grid.add(new Label("Mot de passe:"), 0, 1);
         grid.add(passwordField, 1, 1);
         grid.add(new Label("Rôle:"), 0, 2);
         grid.add(roleCombo, 1, 2);
+        grid.add(medecinLabel, 0, 3);
+        grid.add(medecinCombo, 1, 3);
+        grid.add(infoLabel, 1, 4);
 
         dialog.getDialogPane().setContent(grid);
 
         dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == saveButtonType && !usernameField.getText().trim().isEmpty() 
-                && !passwordField.getText().isEmpty() && roleCombo.getValue() != null) {
+            if (dialogButton == saveButtonType) {
+                String username = usernameField.getText().trim();
+                String password = passwordField.getText();
+                Role role = roleCombo.getValue();
+                Medecin medecin = medecinCombo.getValue();
+
+                // Validation
+                if (username.isEmpty()) {
+                    showAlert("Validation", "Le nom d'utilisateur est obligatoire", Alert.AlertType.WARNING);
+                    return null;
+                }
+                if (password.isEmpty()) {
+                    showAlert("Validation", "Le mot de passe est obligatoire", Alert.AlertType.WARNING);
+                    return null;
+                }
+                if (role == null) {
+                    showAlert("Validation", "Le rôle est obligatoire", Alert.AlertType.WARNING);
+                    return null;
+                }
+                if (role == Role.SEC && medecin == null) {
+                    showAlert("Validation", "Un médecin doit être sélectionné pour une secrétaire", Alert.AlertType.WARNING);
+                    return null;
+                }
+                if (role == Role.MEDECIN && medecin == null) {
+                    showAlert("Validation", "Un médecin doit être sélectionné pour ce rôle", Alert.AlertType.WARNING);
+                    return null;
+                }
+
                 User newUser = new User();
-                newUser.setUsername(usernameField.getText().trim());
-                newUser.setPasswordHash(passwordField.getText()); // Will be hashed by service
-                newUser.setRole(roleCombo.getValue());
+                newUser.setUsername(username);
+                newUser.setPasswordHash(password);
+                newUser.setRole(role);
+                newUser.setMedecin(medecin);
                 return newUser;
             }
             return null;
@@ -152,10 +217,11 @@ public class UserController implements Initializable {
 
         dialog.showAndWait().ifPresent(user -> {
             try {
-                userService.createUserWithPassword(user.getUsername(), user.getPasswordHash(), user.getRole());
+                userService.createUserWithPasswordAndMedecin(user.getUsername(), user.getPasswordHash(), user.getRole(), user.getMedecin());
                 loadUsers();
                 showAlert("Succès", "Utilisateur créé avec succès!", Alert.AlertType.INFORMATION);
             } catch (Exception e) {
+                e.printStackTrace();
                 showAlert("Erreur", "Erreur lors de la création: " + e.getMessage(), Alert.AlertType.ERROR);
             }
         });

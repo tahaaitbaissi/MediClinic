@@ -21,7 +21,7 @@ public class User implements Serializable {
     @Column(nullable = false)
     private Role role;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medecin_id", nullable = true)
     private Medecin medecin;
 

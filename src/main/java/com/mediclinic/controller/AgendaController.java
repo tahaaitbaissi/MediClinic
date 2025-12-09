@@ -257,8 +257,10 @@ public class AgendaController implements Initializable {
 
     private void setupFilters() {
         try {
-            // For doctors, hide the doctor filter (they only see their own appointments)
-            if (UserSession.isAuthenticated() && UserSession.getInstance().hasRole(Role.MEDECIN)) {
+            // For doctors and secretaries, hide the doctor filter 
+            // (they only see appointments for their associated doctor)
+            Role role = UserSession.getInstance().getUser().getRole();
+            if (UserSession.isAuthenticated() && (role == Role.MEDECIN || role == Role.SEC)) {
                 doctorCombo.setVisible(false);
                 doctorCombo.setManaged(false);
                 doctors = List.of();
@@ -392,14 +394,18 @@ public class AgendaController implements Initializable {
                 }
             });
             
-            // Pre-select and disable doctor selection for MEDECIN users
+            // Pre-select and disable doctor selection for MEDECIN and SEC users
             UserSession session = UserSession.getInstance();
             Role role = session.getUser().getRole();
-            if (role == Role.MEDECIN) {
+            if (role == Role.MEDECIN || role == Role.SEC) {
                 Medecin medecin = UserSession.getInstance().getUser().getMedecin();
                 if (medecin != null) {
                     doctorComboBox.setValue(medecin);
-                    doctorComboBox.setDisable(true); // Disable doctor selection for doctors
+                    doctorComboBox.setDisable(true); // Disable doctor selection for doctors and secretaries
+                } else if (role == Role.SEC) {
+                    // SEC must have an associated doctor
+                    showAlert("Erreur", "Secrétaire non associée à un médecin.", Alert.AlertType.ERROR);
+                    return;
                 }
             }
 
