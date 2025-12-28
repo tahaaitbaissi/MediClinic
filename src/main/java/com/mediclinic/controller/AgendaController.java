@@ -574,8 +574,21 @@ public class AgendaController implements Initializable {
                     .getUser()
                     .getMedecin();
                 if (medecin != null) {
-                    doctorComboBox.setValue(medecin);
-                    doctorComboBox.setDisable(true); // Disable doctor selection for doctors and secretaries
+                    // Reload the Medecin from database to avoid LazyInitializationException
+                    Medecin reloadedMedecin = medecinService.findById(
+                        medecin.getId()
+                    );
+                    if (reloadedMedecin != null) {
+                        doctorComboBox.setValue(reloadedMedecin);
+                        doctorComboBox.setDisable(true); // Disable doctor selection for doctors and secretaries
+                    } else {
+                        showAlert(
+                            "Erreur",
+                            "Médecin non trouvé.",
+                            Alert.AlertType.ERROR
+                        );
+                        return;
+                    }
                 } else if (role == Role.SEC) {
                     // SEC must have an associated doctor
                     showAlert(

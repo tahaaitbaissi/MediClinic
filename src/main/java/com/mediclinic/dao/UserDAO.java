@@ -11,10 +11,31 @@ public class UserDAO extends AbstractDAO<User, Long> {
     }
 
     public User findByUsername(String username) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("FROM User u WHERE u.username = :username", User.class)
-                    .setParameter("username", username)
-                    .uniqueResult();
+        try (
+            Session session = HibernateUtil.getSessionFactory().openSession()
+        ) {
+            return session
+                .createQuery(
+                    "SELECT u FROM User u LEFT JOIN FETCH u.medecin WHERE u.username = :username",
+                    User.class
+                )
+                .setParameter("username", username)
+                .uniqueResult();
+        }
+    }
+
+    @Override
+    public User findById(Long id) {
+        try (
+            Session session = HibernateUtil.getSessionFactory().openSession()
+        ) {
+            return session
+                .createQuery(
+                    "SELECT u FROM User u LEFT JOIN FETCH u.medecin WHERE u.id = :id",
+                    User.class
+                )
+                .setParameter("id", id)
+                .uniqueResult();
         }
     }
 }
