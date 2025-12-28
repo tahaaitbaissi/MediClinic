@@ -1,5 +1,6 @@
 package com.mediclinic.service;
 
+import com.mediclinic.dao.RendezVousDAO;
 import com.mediclinic.model.Patient;
 import com.mediclinic.model.RendezVous;
 import com.mediclinic.model.RendezVousStatus;
@@ -136,16 +137,23 @@ public class AppointmentReminderService {
         try {
             emailService.sendAppointmentReminderWithQR(rdv);
 
-            System.out.println(
-                "Reminder with QR code sent to " +
-                    rdv.getPatient().getEmail() +
-                    " for appointment on " +
-                    rdv
-                        .getDateHeureDebut()
-                        .format(
+            // Avoid LazyInitializationException by reloading the appointment
+            RendezVousDAO rdvDAO = new RendezVousDAO();
+            RendezVous reloadedRdv = rdvDAO.findById(rdv.getId());
+            
+            if (reloadedRdv != null && reloadedRdv.getPatient() != null && 
+                reloadedRdv.getPatient().getEmail() != null) {
+                System.out.println(
+                    "Reminder with QR code sent to " +
+                        reloadedRdv.getPatient().getEmail() +
+                        " for appointment on " +
+                        reloadedRdv
+                            .getDateHeureDebut()
+                            .format(
                             DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm")
                         )
-            );
+                );
+            }
         } catch (Exception e) {
             System.err.println(
                 "Failed to send reminder for appointment " +

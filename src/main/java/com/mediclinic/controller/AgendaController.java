@@ -1620,20 +1620,29 @@ public class AgendaController implements Initializable {
     }
 
     private void sendAppointmentConfirmationEmail(RendezVous rdv) {
-        if (rdv == null || rdv.getPatient() == null) {
-            return;
-        }
-
-        Patient patient = rdv.getPatient();
-        if (patient.getEmail() == null || patient.getEmail().trim().isEmpty()) {
-            System.out.println(
-                "Patient has no email - confirmation email not sent"
-            );
+        if (rdv == null || rdv.getId() == null) {
             return;
         }
 
         try {
-            emailService.sendAppointmentConfirmationWithQR(rdv);
+            // Reload the appointment from the database to ensure all lazy-loaded relationships are available
+            // This prevents LazyInitializationException when accessing patient.getEmail()
+            RendezVous reloadedRdv = rendezVousService.findById(rdv.getId());
+            
+            if (reloadedRdv == null || reloadedRdv.getPatient() == null) {
+                System.out.println("Cannot reload appointment or patient");
+                return;
+            }
+
+            Patient patient = reloadedRdv.getPatient();
+            if (patient.getEmail() == null || patient.getEmail().trim().isEmpty()) {
+                System.out.println(
+                    "Patient has no email - confirmation email not sent"
+                );
+                return;
+            }
+
+            emailService.sendAppointmentConfirmationWithQR(reloadedRdv);
 
             System.out.println(
                 "Appointment confirmation email with QR code sent to: " +
@@ -1644,6 +1653,7 @@ public class AgendaController implements Initializable {
                 "Failed to send appointment confirmation email: " +
                     e.getMessage()
             );
+            e.printStackTrace();
         }
     }
 

@@ -1,5 +1,6 @@
 package com.mediclinic.service;
 
+import com.mediclinic.dao.RendezVousDAO;
 import com.mediclinic.model.RendezVous;
 import com.mediclinic.util.ConfigurationManager;
 import jakarta.mail.*;
@@ -213,45 +214,51 @@ public class EmailService {
             return;
         }
 
-        if (rdv == null || rdv.getPatient() == null) {
-            System.err.println("Invalid RendezVous or Patient data");
+        if (rdv == null || rdv.getId() == null) {
+            System.err.println("Invalid RendezVous or missing ID");
             return;
         }
 
-        if (rdv.getId() == null) {
-            System.err.println(
-                "RendezVous must be saved to database before generating QR code (ID is null)"
-            );
+        // Reload the appointment from DB to avoid LazyInitializationException
+        // when accessing lazy-loaded relationships in a separate thread
+        RendezVousDAO rdvDAO = new RendezVousDAO();
+        RendezVous reloadedRdv = rdvDAO.findById(rdv.getId());
+        
+        if (reloadedRdv == null || reloadedRdv.getPatient() == null) {
+            System.err.println("Cannot reload RendezVous or Patient from database");
             return;
         }
 
-        String patientEmail = rdv.getPatient().getEmail();
+        String patientEmail = reloadedRdv.getPatient().getEmail();
         if (patientEmail == null || patientEmail.trim().isEmpty()) {
             System.out.println(
                 "Patient email not available. Skipping confirmation email."
             );
             return;
         }
+        
+        // Use the reloaded appointment for all operations
+        final RendezVous finalRdv = reloadedRdv;
 
         new Thread(() -> {
             Path tempPdfPath = null;
             try {
                 tempPdfPath = Files.createTempFile(
-                    "rdv_confirmation_" + rdv.getId() + "_",
+                    "rdv_confirmation_" + finalRdv.getId() + "_",
                     ".pdf"
                 );
                 String pdfPath = tempPdfPath.toAbsolutePath().toString();
 
-                pdfService.generateAppointmentConfirmationPdf(rdv, pdfPath);
+                pdfService.generateAppointmentConfirmationPdf(finalRdv, pdfPath);
 
                 String subject = "Confirmation de Rendez-vous - MediClinic";
 
-                String appointmentDateTime = rdv
+                String appointmentDateTime = finalRdv
                     .getDateHeureDebut()
                     .format(DATETIME_FORMATTER);
-                String motif = rdv.getMotif() != null &&
-                    !rdv.getMotif().isEmpty()
-                    ? rdv.getMotif()
+                String motif = finalRdv.getMotif() != null &&
+                    !finalRdv.getMotif().isEmpty()
+                    ? finalRdv.getMotif()
                     : "Consultation";
 
                 String body =
@@ -259,7 +266,7 @@ public class EmailService {
                     "<div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0;'>" +
                     "<h2 style='color: #2980b9;'>Confirmation de Rendez-vous</h2>" +
                     "<p>Bonjour <strong>" +
-                    rdv.getPatient().getNomComplet() +
+                    finalRdv.getPatient().getNomComplet() +
                     "</strong>,</p>" +
                     "<p>Votre rendez-vous a été confirmé avec succès.</p>" +
                     "<div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;'>" +
@@ -267,7 +274,7 @@ public class EmailService {
                     appointmentDateTime +
                     "</p>" +
                     "<p style='margin: 5px 0;'><strong>Médecin:</strong> Dr. " +
-                    rdv.getMedecin().getNomComplet() +
+                    finalRdv.getMedecin().getNomComplet() +
                     "</p>" +
                     "<p style='margin: 5px 0;'><strong>Motif:</strong> " +
                     motif +
@@ -368,45 +375,51 @@ public class EmailService {
             return;
         }
 
-        if (rdv == null || rdv.getPatient() == null) {
-            System.err.println("Invalid RendezVous or Patient data");
+        if (rdv == null || rdv.getId() == null) {
+            System.err.println("Invalid RendezVous or missing ID");
             return;
         }
 
-        if (rdv.getId() == null) {
-            System.err.println(
-                "RendezVous must be saved to database before generating QR code (ID is null)"
-            );
+        // Reload the appointment from DB to avoid LazyInitializationException
+        // when accessing lazy-loaded relationships in a separate thread
+        RendezVousDAO rdvDAO = new RendezVousDAO();
+        RendezVous reloadedRdv = rdvDAO.findById(rdv.getId());
+        
+        if (reloadedRdv == null || reloadedRdv.getPatient() == null) {
+            System.err.println("Cannot reload RendezVous or Patient from database");
             return;
         }
 
-        String patientEmail = rdv.getPatient().getEmail();
+        String patientEmail = reloadedRdv.getPatient().getEmail();
         if (patientEmail == null || patientEmail.trim().isEmpty()) {
             System.out.println(
                 "Patient email not available. Skipping reminder email."
             );
             return;
         }
+        
+        // Use the reloaded appointment for all operations
+        final RendezVous finalRdv = reloadedRdv;
 
         new Thread(() -> {
             Path tempPdfPath = null;
             try {
                 tempPdfPath = Files.createTempFile(
-                    "rdv_reminder_" + rdv.getId() + "_",
+                    "rdv_reminder_" + finalRdv.getId() + "_",
                     ".pdf"
                 );
                 String pdfPath = tempPdfPath.toAbsolutePath().toString();
 
-                pdfService.generateAppointmentConfirmationPdf(rdv, pdfPath);
+                pdfService.generateAppointmentConfirmationPdf(finalRdv, pdfPath);
 
                 String subject = "Rappel de Rendez-vous - MediClinic";
 
-                String appointmentDateTime = rdv
+                String appointmentDateTime = finalRdv
                     .getDateHeureDebut()
                     .format(DATETIME_FORMATTER);
-                String motif = rdv.getMotif() != null &&
-                    !rdv.getMotif().isEmpty()
-                    ? rdv.getMotif()
+                String motif = finalRdv.getMotif() != null &&
+                    !finalRdv.getMotif().isEmpty()
+                    ? finalRdv.getMotif()
                     : "Consultation";
 
                 String body =
@@ -414,7 +427,7 @@ public class EmailService {
                     "<div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0;'>" +
                     "<h2 style='color: #e67e22;'>Rappel de Rendez-vous</h2>" +
                     "<p>Bonjour <strong>" +
-                    rdv.getPatient().getNomComplet() +
+                    finalRdv.getPatient().getNomComplet() +
                     "</strong>,</p>" +
                     "<p>Ceci est un rappel pour votre rendez-vous à venir.</p>" +
                     "<div style='background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #e67e22;'>" +
@@ -422,7 +435,7 @@ public class EmailService {
                     appointmentDateTime +
                     "</p>" +
                     "<p style='margin: 5px 0;'><strong>Médecin:</strong> Dr. " +
-                    rdv.getMedecin().getNomComplet() +
+                    finalRdv.getMedecin().getNomComplet() +
                     "</p>" +
                     "<p style='margin: 5px 0;'><strong>Motif:</strong> " +
                     motif +

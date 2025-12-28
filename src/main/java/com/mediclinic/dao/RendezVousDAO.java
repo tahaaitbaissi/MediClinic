@@ -3,6 +3,7 @@ package com.mediclinic.dao;
 import com.mediclinic.model.Medecin;
 import com.mediclinic.model.Patient;
 import com.mediclinic.model.RendezVous;
+import com.mediclinic.model.RendezVousStatus;
 import com.mediclinic.util.HibernateUtil;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -93,13 +94,19 @@ public class RendezVousDAO extends AbstractDAO<RendezVous, Long> {
                 "WHERE r.medecin = :medecin " +
                 "AND r.id <> :currentRdvId " + // Exclure le RDV en cours de modification
                 "AND r.dateHeureDebut < :newEnd " +
-                "AND r.dateHeureFin > :newStart";
+                "AND r.dateHeureFin > :newStart " +
+                "AND r.status <> :cancelledStatus"; // Ignorer les RDV annulés
+
 
             Long result = session
                 .createQuery(hql, Long.class)
                 .setParameter("medecin", medecin)
                 .setParameter("newEnd", newEnd)
                 .setParameter("newStart", newStart)
+                .setParameter(
+                    "cancelledStatus",
+                    RendezVousStatus.ANNULE
+                )
                 .setParameter(
                     "currentRdvId",
                     currentRdvId != null ? currentRdvId : -1L
