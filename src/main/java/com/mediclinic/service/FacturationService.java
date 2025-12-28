@@ -12,6 +12,7 @@ import com.mediclinic.util.UserSession;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.io.FileNotFoundException;
 
 public class FacturationService {
 
@@ -151,5 +152,28 @@ public class FacturationService {
 
     public List<Facture> getAllFactures() {
         return factureDAO.findAllWithDetails();
+    }
+
+    public void sendFactureByEmail(Long factureId) {
+        // 1. Get Data
+        Facture facture = factureDAO.findById(factureId);
+
+        // 2. Generate PDF
+        PdfService pdfService = new PdfService();
+        String filePath = "facture_" + factureId + ".pdf";
+        try {
+            pdfService.generateFacturePdf(facture, filePath);
+
+            // 3. Send Email
+            EmailService emailService = new EmailService();
+            emailService.sendEmailWithAttachment(
+                    facture.getPatient().getEmail(),
+                    "Votre Facture MediClinic",
+                    "Bonjour, veuillez trouver ci-joint votre facture.",
+                    filePath
+            );
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }
