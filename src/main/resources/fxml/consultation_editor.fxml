@@ -45,9 +45,19 @@
             </content>
         </TitledPane>
 
-        <HBox spacing="10">
-            <Button fx:id="saveBtn" text="Enregistrer" styleClass="btn-success btn-actions" onAction="#handleSave" />
-            <Button text="Fermer" styleClass="btn-danger btn-actions" onAction="#handleClose" />
+        <Separator />
+
+        <!-- Signature Option -->
+        <VBox spacing="8" style="-fx-background-color: #f0f8ff; -fx-border-color: #4682b4; -fx-border-width: 2; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 10;">
+            <Label text="Options de signature" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2c3e50;" />
+            <CheckBox fx:id="includeSignatureCheckBox" text="Inclure signature électronique" selected="true" style="-fx-font-size: 12px;" />
+            <Label text="💡 La signature sera automatiquement ajoutée au bas du document PDF" style="-fx-font-size: 11px; -fx-text-fill: #7f8c8d; -fx-font-style: italic;" wrapText="true" />
+        </VBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Button fx:id="saveBtn" text="💾 Enregistrer" styleClass="btn-success btn-actions" onAction="#handleSave" style="-fx-font-size: 13px; -fx-padding: 8 20 8 20;" />
+            <Button fx:id="exportPdfBtn" text="📄 Exporter PDF" styleClass="btn-primary btn-actions" onAction="#handleExportPdf" style="-fx-font-size: 13px; -fx-padding: 8 20 8 20; -fx-background-color: #3498db; -fx-text-fill: white;" />
+            <Button text="❌ Fermer" styleClass="btn-danger btn-actions" onAction="#handleClose" style="-fx-font-size: 13px; -fx-padding: 8 20 8 20;" />
         </HBox>
     </children>
 </VBox>

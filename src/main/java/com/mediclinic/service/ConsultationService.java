@@ -26,31 +26,44 @@ public class ConsultationService {
      * Crée l'objet Consultation initiale dès que le RendezVous est terminé.
      * Cette méthode est appelée par le RendezVousService.
      */
-    public Consultation createConsultationFromRendezVous(RendezVous rdv) throws IllegalStateException {
+    public Consultation createConsultationFromRendezVous(RendezVous rdv)
+        throws IllegalStateException {
         if (rdv.getStatus() != RendezVousStatus.TERMINE) {
-            throw new IllegalStateException("Le Rendez-vous doit être 'TERMINÉ' pour générer une Consultation.");
+            throw new IllegalStateException(
+                "Le Rendez-vous doit être 'TERMINÉ' pour générer une Consultation."
+            );
         }
 
         // 1. Charger le patient avec son dossier médical pour éviter LazyInitializationException
         if (rdv.getPatient() == null || rdv.getPatient().getId() == null) {
-            throw new IllegalArgumentException("Le rendez-vous doit être associé à un patient valide.");
+            throw new IllegalArgumentException(
+                "Le rendez-vous doit être associé à un patient valide."
+            );
         }
 
         // Charger le patient depuis la base pour avoir accès au dossier
-        com.mediclinic.dao.PatientDAO patientDAO = new com.mediclinic.dao.PatientDAO();
-        com.mediclinic.model.Patient patient = patientDAO.findById(rdv.getPatient().getId());
-        
+        com.mediclinic.dao.PatientDAO patientDAO =
+            new com.mediclinic.dao.PatientDAO();
+        com.mediclinic.model.Patient patient = patientDAO.findById(
+            rdv.getPatient().getId()
+        );
+
         if (patient == null) {
             throw new IllegalArgumentException("Patient introuvable.");
         }
 
         // 2. Trouver le Dossier Médical correspondant au Patient
         // Charger le dossier séparément pour éviter les problèmes de lazy loading
-        DossierMedical dossier = dossierMedicalDAO.findByPatientId(patient.getId());
+        DossierMedical dossier = dossierMedicalDAO.findByPatientId(
+            patient.getId()
+        );
 
         if (dossier == null) {
             // Dans un scénario réel, le Dossier est créé avec le Patient. Si non, il faut le créer ici.
-            throw new IllegalStateException("Dossier médical introuvable pour le patient: " + patient.getNomComplet());
+            throw new IllegalStateException(
+                "Dossier médical introuvable pour le patient: " +
+                    patient.getNomComplet()
+            );
         }
 
         // 3. Création de la Consultation
@@ -58,7 +71,7 @@ public class ConsultationService {
         consultation.setDateConsultation(LocalDateTime.now());
         consultation.setRendezVous(rdv);
         consultation.setDossierMedical(dossier);
-        
+
         // Note: Pas besoin d'appeler dossier.addConsultation() car cela accéderait
         // à la collection lazy-loaded. La relation est établie via setDossierMedical().
 
@@ -69,7 +82,12 @@ public class ConsultationService {
     /**
      * Met à jour les notes médicales de la consultation après l'examen.
      */
-    public Consultation updateConsultationNotes(Long consultationId, String observations, String diagnostic, String prescriptions) {
+    public Consultation updateConsultationNotes(
+        Long consultationId,
+        String observations,
+        String diagnostic,
+        String prescriptions
+    ) {
         Consultation consultation = consultationDAO.findById(consultationId);
 
         if (consultation == null) {
@@ -96,5 +114,13 @@ public class ConsultationService {
 
     public Consultation findById(Long id) {
         return consultationDAO.findById(id);
+    }
+
+    /**
+     * Récupère une consultation avec toutes ses dépendances pour l'export PDF.
+     * Utilise JOIN FETCH pour éviter LazyInitializationException.
+     */
+    public Consultation findByIdWithAllDetails(Long id) {
+        return consultationDAO.findByIdWithAllDetails(id);
     }
 }

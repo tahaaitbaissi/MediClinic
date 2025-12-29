@@ -28,12 +28,20 @@ public class Medecin implements Serializable {
     @Column(name = "telephone")
     private String telephone;
 
+    @Transient // Not stored in database, calculated on-the-fly
+    private boolean hasSignature;
+
     // --- Constructeurs ---
 
-    public Medecin() {
-    }
+    public Medecin() {}
 
-    public Medecin(String nom, String prenom, SpecialiteMedecin specialite, String email, String telephone) {
+    public Medecin(
+        String nom,
+        String prenom,
+        SpecialiteMedecin specialite,
+        String email,
+        String telephone
+    ) {
         this.nom = nom;
         this.prenom = prenom;
         this.specialite = specialite;
@@ -95,5 +103,13 @@ public class Medecin implements Serializable {
 
     public String getNomComplet() {
         return this.prenom + " " + this.nom.toUpperCase();
+    }
+
+    public boolean isHasSignature() {
+        return hasSignature;
+    }
+
+    public void setHasSignature(boolean hasSignature) {
+        this.hasSignature = hasSignature;
     }
 }

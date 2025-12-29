@@ -21,6 +21,7 @@ public class MainController {
 
     @FXML
     private Button dashboardBtn, patientsBtn, agendaBtn, doctorsBtn, billingBtn, qrScannerBtn, usersBtn, consultationsBtn, waitingRoomBtn;
+
     @FXML
     private void showWaitingRoom() {
         setActiveButton(waitingRoomBtn);
@@ -139,7 +140,10 @@ public class MainController {
                     billingBtn.setManaged(true);
                     usersBtn.setVisible(true);
                     usersBtn.setManaged(true);
-                    if (consultationsBtn != null) { consultationsBtn.setVisible(true); consultationsBtn.setManaged(true); }
+                    if (consultationsBtn != null) {
+                        consultationsBtn.setVisible(true);
+                        consultationsBtn.setManaged(true);
+                    }
                     break;
                 case MEDECIN:
                     // Doctor sees only Dashboard and Agenda
@@ -153,7 +157,10 @@ public class MainController {
                     billingBtn.setManaged(false);
                     usersBtn.setVisible(false);
                     usersBtn.setManaged(false);
-                    if (consultationsBtn != null) { consultationsBtn.setVisible(true); consultationsBtn.setManaged(true); }
+                    if (consultationsBtn != null) {
+                        consultationsBtn.setVisible(true);
+                        consultationsBtn.setManaged(true);
+                    }
                     break;
                 case SEC:
                     // Secretary sees Dashboard, Patients, Agenda, Billing
@@ -167,7 +174,10 @@ public class MainController {
                     billingBtn.setManaged(true);
                     usersBtn.setVisible(false);
                     usersBtn.setManaged(false);
-                    if (consultationsBtn != null) { consultationsBtn.setVisible(false); consultationsBtn.setManaged(false); }
+                    if (consultationsBtn != null) {
+                        consultationsBtn.setVisible(false);
+                        consultationsBtn.setManaged(false);
+                    }
                     break;
             }
         } catch (Exception e) {
@@ -266,6 +276,44 @@ public class MainController {
         checkPermission("consultations");
         setActiveButton(consultationsBtn);
         loadView("/fxml/consultations_view.fxml");
+    }
+
+    /**
+     * Opens the doctor profile window for signature management
+     */
+    @FXML
+    private void openDoctorProfile() {
+        try {
+            // Check if user is a doctor
+            if (UserSession.getMedecinId() == null) {
+                showAlert(
+                    "Accès refusé",
+                    "Seuls les médecins peuvent accéder au profil médical.",
+                    Alert.AlertType.WARNING
+                );
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/fxml/doctor_profile_view.fxml")
+            );
+            Parent profileView = loader.load();
+
+            Stage profileStage = new Stage();
+            profileStage.setTitle("Profil du Médecin - Signature Électronique");
+            profileStage.setScene(new Scene(profileView, 800, 900));
+            profileStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            profileStage.show();
+
+            System.out.println("Doctor profile window opened");
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(
+                "Erreur",
+                "Impossible d'ouvrir le profil: " + e.getMessage(),
+                Alert.AlertType.ERROR
+            );
+        }
     }
 
     private void checkPermission(String page) {

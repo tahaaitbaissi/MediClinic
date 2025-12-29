@@ -4,6 +4,7 @@ import com.google.zxing.WriterException;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -20,6 +21,7 @@ import com.itextpdf.layout.properties.VerticalAlignment;
 import com.mediclinic.model.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -550,7 +552,9 @@ public class PdfService {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
-        String patientName = dossier.getPatient() != null ? dossier.getPatient().getNomComplet() : "";
+        String patientName = dossier.getPatient() != null
+            ? dossier.getPatient().getNomComplet()
+            : "";
         addHeader(document, "DOSSIER MEDICAL", patientName);
 
         document.add(new Paragraph("\n"));
@@ -558,9 +562,19 @@ public class PdfService {
         Table infoTable = new Table(2);
         infoTable.setWidth(UnitValue.createPercentValue(100));
 
-        addInfoCell(infoTable, "ID Dossier:", dossier.getId() != null ? String.valueOf(dossier.getId()) : "");
+        addInfoCell(
+            infoTable,
+            "ID Dossier:",
+            dossier.getId() != null ? String.valueOf(dossier.getId()) : ""
+        );
         addInfoCell(infoTable, "Patient:", patientName);
-        addInfoCell(infoTable, "Date de création:", dossier.getDateCreation() != null ? dossier.getDateCreation().format(DATE_FORMATTER) : "");
+        addInfoCell(
+            infoTable,
+            "Date de création:",
+            dossier.getDateCreation() != null
+                ? dossier.getDateCreation().format(DATE_FORMATTER)
+                : ""
+        );
 
         document.add(infoTable);
         document.add(new Paragraph("\n"));
@@ -572,7 +586,9 @@ public class PdfService {
         document.add(notesTitle);
         document.add(new Paragraph("\n").setMarginTop(-5));
 
-        String notes = dossier.getNotesGenerales() != null ? dossier.getNotesGenerales() : "Aucune note";
+        String notes = dossier.getNotesGenerales() != null
+            ? dossier.getNotesGenerales()
+            : "Aucune note";
         Table notesTable = new Table(1);
         notesTable.setWidth(UnitValue.createPercentValue(100));
         Cell notesCell = new Cell()
@@ -603,10 +619,18 @@ public class PdfService {
 
             for (Consultation c : consultations) {
                 RendezVous rdv = c.getRendezVous();
-                String date = rdv != null && rdv.getDateHeureDebut() != null ? rdv.getDateHeureDebut().format(DATETIME_FORMATTER) : "";
-                String motif = rdv != null && rdv.getMotif() != null ? rdv.getMotif() : "";
-                String obs = c.getObservations() != null ? c.getObservations() : "";
-                String diag = c.getDiagnostic() != null ? c.getDiagnostic() : "";
+                String date = rdv != null && rdv.getDateHeureDebut() != null
+                    ? rdv.getDateHeureDebut().format(DATETIME_FORMATTER)
+                    : "";
+                String motif = rdv != null && rdv.getMotif() != null
+                    ? rdv.getMotif()
+                    : "";
+                String obs = c.getObservations() != null
+                    ? c.getObservations()
+                    : "";
+                String diag = c.getDiagnostic() != null
+                    ? c.getDiagnostic()
+                    : "";
 
                 addTableCell(table, date, true);
                 addTableCell(table, motif, false);
@@ -975,5 +999,355 @@ public class PdfService {
         addFooter(document);
 
         document.close();
+    }
+
+    /**
+     * Adds doctor's electronic signature to a PDF document
+     * @param document the PDF document
+     * @param medecinId the doctor's ID
+     * @param includeSignature whether to include the signature
+     * @return true if signature was added, false otherwise
+     */
+    public boolean addElectronicSignature(
+        Document document,
+        Long medecinId,
+        boolean includeSignature
+    ) {
+        if (!includeSignature || medecinId == null) {
+            return false;
+        }
+
+        try {
+            SignatureService signatureService = new SignatureService();
+            String signaturePath = signatureService.getSignatureFilePath(
+                medecinId
+            );
+            File signatureFile = new File(signaturePath);
+
+            if (!signatureFile.exists()) {
+                System.out.println(
+                    "INFO: No signature found for medecin " + medecinId
+                );
+                return false;
+            }
+
+            // Load signature image
+            com.itextpdf.io.image.ImageData imageData = ImageDataFactory.create(
+                signaturePath
+            );
+            Image signatureImage = new Image(imageData);
+
+            // Scale signature to reasonable size (max width 150px, max height 75px)
+            signatureImage.scaleToFit(150, 75);
+
+            // Position signature at bottom right
+            // Page width is typically 595 points (A4)
+            float xPosition = 400; // Right side
+            float yPosition = 80; // Bottom area
+
+            signatureImage.setFixedPosition(xPosition, yPosition);
+
+            // Add signature image
+            document.add(signatureImage);
+
+            // Add "Signed electronically" text below signature
+            Paragraph signedText = new Paragraph("Signé électroniquement")
+                .setFontSize(8)
+                .setFontColor(DARK_GRAY)
+                .setItalic()
+                .setFixedPosition(xPosition, yPosition - 15, 150)
+                .setTextAlignment(TextAlignment.CENTER);
+
+            document.add(signedText);
+
+            // Add timestamp
+            String timestamp = LocalDateTime.now().format(DATETIME_FORMATTER);
+            Paragraph timestampText = new Paragraph("Le " + timestamp)
+                .setFontSize(7)
+                .setFontColor(DARK_GRAY)
+                .setFixedPosition(xPosition, yPosition - 25, 150)
+                .setTextAlignment(TextAlignment.CENTER);
+
+            document.add(timestampText);
+
+            System.out.println(
+                "SUCCESS: Electronic signature added for medecin " + medecinId
+            );
+            return true;
+        } catch (Exception e) {
+            System.err.println(
+                "ERROR: Failed to add signature: " + e.getMessage()
+            );
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Adds doctor's signature to bottom of page (alternative positioning)
+     * @param document the PDF document
+     * @param medecinId the doctor's ID
+     * @param xPosition horizontal position
+     * @param yPosition vertical position
+     * @return true if signature was added, false otherwise
+     */
+    public boolean addSignatureAtPosition(
+        Document document,
+        Long medecinId,
+        float xPosition,
+        float yPosition
+    ) {
+        if (medecinId == null) {
+            return false;
+        }
+
+        try {
+            SignatureService signatureService = new SignatureService();
+            String signaturePath = signatureService.getSignatureFilePath(
+                medecinId
+            );
+            File signatureFile = new File(signaturePath);
+
+            if (!signatureFile.exists()) {
+                return false;
+            }
+
+            com.itextpdf.io.image.ImageData imageData = ImageDataFactory.create(
+                signaturePath
+            );
+            Image signatureImage = new Image(imageData);
+
+            signatureImage.scaleToFit(150, 75);
+            signatureImage.setFixedPosition(xPosition, yPosition);
+
+            document.add(signatureImage);
+
+            return true;
+        } catch (Exception e) {
+            System.err.println(
+                "ERROR: Failed to add signature at position: " + e.getMessage()
+            );
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a doctor has a signature available
+     * @param medecinId the doctor's ID
+     * @return true if signature exists, false otherwise
+     */
+    public boolean hasSignature(Long medecinId) {
+        if (medecinId == null) {
+            return false;
+        }
+
+        SignatureService signatureService = new SignatureService();
+        return signatureService.hasSignature(medecinId);
+    }
+
+    /**
+     * Generate a consultation PDF report
+     *
+     * @param consultation The consultation to generate PDF for
+     * @param outputPath Path where to save the PDF
+     * @param includeSignature Whether to include the doctor's electronic signature
+     * @throws IOException if PDF generation fails
+     */
+    public void generateConsultationPdf(
+        Consultation consultation,
+        String outputPath,
+        boolean includeSignature
+    ) throws IOException {
+        if (consultation == null) {
+            throw new IllegalArgumentException("Consultation cannot be null");
+        }
+
+        PdfWriter writer = new PdfWriter(outputPath);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        Document document = new Document(pdfDoc, PageSize.A4);
+        document.setMargins(50, 50, 50, 50);
+
+        RendezVous rdv = consultation.getRendezVous();
+        Patient patient = rdv != null ? rdv.getPatient() : null;
+        Medecin medecin = rdv != null ? rdv.getMedecin() : null;
+
+        // Header
+        addHeader(
+            document,
+            "COMPTE-RENDU DE CONSULTATION",
+            "Consultation N° " + consultation.getId()
+        );
+
+        document.add(new Paragraph("\n"));
+
+        // Patient Information Section
+        Table patientTable = new Table(2);
+        patientTable.setWidth(UnitValue.createPercentValue(100));
+        patientTable.addCell(
+            new Cell(1, 2)
+                .add(
+                    new Paragraph("INFORMATIONS PATIENT")
+                        .setBold()
+                        .setFontSize(14)
+                )
+                .setBackgroundColor(PRIMARY_COLOR)
+                .setFontColor(ColorConstants.WHITE)
+                .setPadding(8)
+                .setBorder(Border.NO_BORDER)
+        );
+
+        if (patient != null) {
+            addInfoCell(patientTable, "Nom complet", patient.getNomComplet());
+            addInfoCell(
+                patientTable,
+                "Date de naissance",
+                patient.getDateNaissance() != null
+                    ? patient.getDateNaissance().format(DATE_FORMATTER)
+                    : "N/A"
+            );
+            addInfoCell(
+                patientTable,
+                "Téléphone",
+                patient.getTelephone() != null ? patient.getTelephone() : "N/A"
+            );
+            addInfoCell(
+                patientTable,
+                "Email",
+                patient.getEmail() != null ? patient.getEmail() : "N/A"
+            );
+        }
+
+        document.add(patientTable);
+        document.add(new Paragraph("\n"));
+
+        // Consultation Details Section
+        Table consultTable = new Table(2);
+        consultTable.setWidth(UnitValue.createPercentValue(100));
+        consultTable.addCell(
+            new Cell(1, 2)
+                .add(
+                    new Paragraph("DÉTAILS DE LA CONSULTATION")
+                        .setBold()
+                        .setFontSize(14)
+                )
+                .setBackgroundColor(SECONDARY_COLOR)
+                .setFontColor(ColorConstants.WHITE)
+                .setPadding(8)
+                .setBorder(Border.NO_BORDER)
+        );
+
+        addInfoCell(
+            consultTable,
+            "Date de consultation",
+            consultation.getDateConsultation() != null
+                ? consultation.getDateConsultation().format(DATETIME_FORMATTER)
+                : "N/A"
+        );
+
+        if (medecin != null) {
+            addInfoCell(
+                consultTable,
+                "Médecin",
+                "Dr. " + medecin.getNomComplet()
+            );
+            addInfoCell(
+                consultTable,
+                "Spécialité",
+                medecin.getSpecialite() != null
+                    ? medecin.getSpecialite().toString()
+                    : "N/A"
+            );
+        }
+
+        if (rdv != null && rdv.getMotif() != null) {
+            addInfoCell(consultTable, "Motif", rdv.getMotif());
+        }
+
+        document.add(consultTable);
+        document.add(new Paragraph("\n"));
+
+        // Observations Section
+        if (
+            consultation.getObservations() != null &&
+            !consultation.getObservations().isEmpty()
+        ) {
+            document.add(
+                new Paragraph("OBSERVATIONS ET EXAMEN")
+                    .setBold()
+                    .setFontSize(12)
+                    .setFontColor(PRIMARY_COLOR)
+            );
+            document.add(
+                new Paragraph(consultation.getObservations())
+                    .setFontSize(10)
+                    .setPaddingLeft(10)
+                    .setPaddingTop(5)
+                    .setPaddingBottom(10)
+                    .setBackgroundColor(new DeviceRgb(250, 250, 250))
+                    .setBorder(new SolidBorder(LIGHT_GRAY, 1))
+            );
+            document.add(new Paragraph("\n"));
+        }
+
+        // Diagnostic Section
+        if (
+            consultation.getDiagnostic() != null &&
+            !consultation.getDiagnostic().isEmpty()
+        ) {
+            document.add(
+                new Paragraph("DIAGNOSTIC")
+                    .setBold()
+                    .setFontSize(12)
+                    .setFontColor(PRIMARY_COLOR)
+            );
+            document.add(
+                new Paragraph(consultation.getDiagnostic())
+                    .setFontSize(10)
+                    .setPaddingLeft(10)
+                    .setPaddingTop(5)
+                    .setPaddingBottom(10)
+                    .setBackgroundColor(new DeviceRgb(255, 250, 240))
+                    .setBorder(new SolidBorder(WARNING_ORANGE, 1))
+            );
+            document.add(new Paragraph("\n"));
+        }
+
+        // Prescriptions Section
+        if (
+            consultation.getPrescriptions() != null &&
+            !consultation.getPrescriptions().isEmpty()
+        ) {
+            document.add(
+                new Paragraph("PRESCRIPTIONS ET TRAITEMENT")
+                    .setBold()
+                    .setFontSize(12)
+                    .setFontColor(PRIMARY_COLOR)
+            );
+            document.add(
+                new Paragraph(consultation.getPrescriptions())
+                    .setFontSize(10)
+                    .setPaddingLeft(10)
+                    .setPaddingTop(5)
+                    .setPaddingBottom(10)
+                    .setBackgroundColor(new DeviceRgb(240, 255, 240))
+                    .setBorder(new SolidBorder(SUCCESS_GREEN, 1))
+            );
+            document.add(new Paragraph("\n"));
+        }
+
+        // Add electronic signature if requested and available
+        if (includeSignature && medecin != null) {
+            Long medecinId = medecin.getId();
+            if (medecinId != null && hasSignature(medecinId)) {
+                addElectronicSignature(document, medecinId, true);
+            }
+        }
+
+        // Footer
+        addFooter(document);
+
+        document.close();
+
+        System.out.println("✓ Consultation PDF generated: " + outputPath);
     }
 }

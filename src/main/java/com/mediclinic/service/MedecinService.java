@@ -29,12 +29,14 @@ public class MedecinService {
         if (!UserSession.isAuthenticated()) {
             throw new SecurityException("Utilisateur non authentifié.");
         }
-        
+
         Role role = UserSession.getInstance().getUser().getRole();
         if (role != Role.ADMIN) {
-            throw new SecurityException("Seul l'administrateur peut créer ou modifier un médecin.");
+            throw new SecurityException(
+                "Seul l'administrateur peut créer ou modifier un médecin."
+            );
         }
-        
+
         // En théorie, on pourrait valider l'unicité de l'email ici
         // Mais nous laissons le DAO/DB gérer la contrainte UNIQUE.
         return medecinDAO.save(medecin);
@@ -44,34 +46,44 @@ public class MedecinService {
      * Met à jour un médecin existant par son ID.
      * Utilise l'ID pour éviter les problèmes d'entités détachées.
      */
-    public Medecin updateMedecin(Long medecinId, String nom, String prenom, 
-                                  SpecialiteMedecin specialite, String email, String telephone) throws SecurityException {
+    public Medecin updateMedecin(
+        Long medecinId,
+        String nom,
+        String prenom,
+        SpecialiteMedecin specialite,
+        String email,
+        String telephone
+    ) throws SecurityException {
         // Check authentication and permission - Only ADMIN can modify doctors
         if (!UserSession.isAuthenticated()) {
             throw new SecurityException("Utilisateur non authentifié.");
         }
-        
+
         Role role = UserSession.getInstance().getUser().getRole();
         if (role != Role.ADMIN) {
-            throw new SecurityException("Seul l'administrateur peut modifier un médecin.");
+            throw new SecurityException(
+                "Seul l'administrateur peut modifier un médecin."
+            );
         }
-        
+
         if (medecinId == null) {
             throw new IllegalArgumentException("L'ID du médecin est requis.");
         }
-        
+
         Medecin existingMedecin = medecinDAO.findById(medecinId);
         if (existingMedecin == null) {
-            throw new IllegalArgumentException("Médecin non trouvé avec l'ID: " + medecinId);
+            throw new IllegalArgumentException(
+                "Médecin non trouvé avec l'ID: " + medecinId
+            );
         }
-        
+
         // Mettre à jour les champs
         existingMedecin.setNom(nom);
         existingMedecin.setPrenom(prenom);
         existingMedecin.setSpecialite(specialite);
         existingMedecin.setEmail(email);
         existingMedecin.setTelephone(telephone);
-        
+
         return medecinDAO.save(existingMedecin);
     }
 
@@ -79,17 +91,20 @@ public class MedecinService {
      * Suppression contrôlée pour éviter la perte d'historique.
      * Un médecin ne peut être supprimé s'il a encore des rendez-vous.
      */
-    public void deleteMedecin(Long medecinId) throws IllegalStateException, SecurityException {
+    public void deleteMedecin(Long medecinId)
+        throws IllegalStateException, SecurityException {
         // Check authentication and permission - Only ADMIN can delete doctors
         if (!UserSession.isAuthenticated()) {
             throw new SecurityException("Utilisateur non authentifié.");
         }
-        
+
         Role role = UserSession.getInstance().getUser().getRole();
         if (role != Role.ADMIN) {
-            throw new SecurityException("Seul l'administrateur peut supprimer un médecin.");
+            throw new SecurityException(
+                "Seul l'administrateur peut supprimer un médecin."
+            );
         }
-        
+
         Medecin medecin = medecinDAO.findById(medecinId);
 
         if (medecin == null) {
@@ -100,13 +115,16 @@ public class MedecinService {
         Long rdvCount = rendezVousDAO.countByMedecin(medecin);
 
         if (rdvCount > 0) {
-            throw new IllegalStateException("Impossible de supprimer le médecin : il est lié à " +
-                    rdvCount + " rendez-vous. Archivez-le plutôt.");
+            throw new IllegalStateException(
+                "Impossible de supprimer le médecin : il est lié à " +
+                    rdvCount +
+                    " rendez-vous. Archivez-le plutôt."
+            );
         }
 
         medecinDAO.delete(medecin);
     }
-    
+
     /**
      * Check if current user can create doctors
      */
@@ -126,6 +144,16 @@ public class MedecinService {
 
     public List<Medecin> findAll() {
         return medecinDAO.findAll();
+    }
+
+    /**
+     * Get a medecin by ID
+     */
+    public Medecin getMedecinById(Long medecinId) {
+        if (medecinId == null) {
+            return null;
+        }
+        return medecinDAO.findById(medecinId);
     }
 
     /**

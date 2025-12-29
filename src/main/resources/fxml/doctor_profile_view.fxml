@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.mediclinic.controller.DoctorProfileController"
+            fitToWidth="true" fitToHeight="true">
+    <VBox spacing="20" style="-fx-background-color: #f5f6fa;">
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30"/>
+        </padding>
+
+        <!-- Header -->
+        <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+            <Label text="Profil du Médecin" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;">
+                <font>
+                    <Font name="System Bold" size="28.0"/>
+                </font>
+            </Label>
+            <Label text="Gérez vos informations et votre signature électronique" style="-fx-font-size: 14px; -fx-text-fill: #7f8c8d;"/>
+        </VBox>
+
+        <!-- Doctor Information Section -->
+        <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+            <Label text="Informations Personnelles" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #34495e;">
+                <font>
+                    <Font name="System Bold" size="20.0"/>
+                </font>
+            </Label>
+
+            <Separator/>
+
+            <VBox spacing="10">
+                <Label fx:id="doctorNameLabel" text="Dr. [Nom]" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2980b9;">
+                    <font>
+                        <Font name="System Bold" size="18.0"/>
+                    </font>
+                </Label>
+                <Label fx:id="doctorSpecialtyLabel" text="Spécialité: [Spécialité]" style="-fx-font-size: 14px; -fx-text-fill: #555;"/>
+                <Label fx:id="doctorEmailLabel" text="Email: [Email]" style="-fx-font-size: 14px; -fx-text-fill: #555;"/>
+                <Label fx:id="doctorPhoneLabel" text="Téléphone: [Téléphone]" style="-fx-font-size: 14px; -fx-text-fill: #555;"/>
+            </VBox>
+        </VBox>
+
+        <!-- Electronic Signature Section -->
+        <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+            <Label text="Signature Électronique" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #34495e;">
+                <font>
+                    <Font name="System Bold" size="20.0"/>
+                </font>
+            </Label>
+
+            <Separator/>
+
+            <!-- Signature Status -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Statut:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                <Label fx:id="signatureStatusLabel" text="❌ Aucune signature enregistrée" style="-fx-font-size: 14px; -fx-text-fill: #e74c3c;"/>
+            </HBox>
+
+            <!-- Current Signature Preview -->
+            <VBox fx:id="currentSignatureBox" spacing="10" visible="false" managed="false"
+                  style="-fx-background-color: #ecf0f1; -fx-background-radius: 8; -fx-border-color: #bdc3c7; -fx-border-radius: 8; -fx-border-width: 2;">
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+                <Label text="Signature Actuelle:" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+                <ImageView fx:id="currentSignatureView" fitHeight="100" fitWidth="300" preserveRatio="true"
+                          style="-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 1);"/>
+                <Label text="Cette signature sera utilisée pour signer vos ordonnances et certificats"
+                       style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d; -fx-font-style: italic;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Drawing Area -->
+            <VBox spacing="10">
+                <Label text="Dessinez votre signature ci-dessous:" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #34495e;"/>
+                <Label text="Utilisez la souris ou le pavé tactile pour dessiner votre signature. Elle sera enregistrée et utilisée automatiquement."
+                       style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d; -fx-wrap-text: true;"/>
+
+                <!-- Canvas Container -->
+                <VBox style="-fx-background-color: white; -fx-border-color: #3498db; -fx-border-width: 3; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(52, 152, 219, 0.3), 10, 0, 0, 2);">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <Canvas fx:id="signatureCanvas" width="600" height="200" style="-fx-cursor: crosshair;"/>
+                </VBox>
+
+                <!-- Help Text -->
+                <Label text="💡 Conseil: Utilisez un trait fin et lisible. Votre signature sera automatiquement redimensionnée dans les documents."
+                       style="-fx-font-size: 12px; -fx-text-fill: #16a085; -fx-wrap-text: true; -fx-font-style: italic;"/>
+            </VBox>
+
+            <!-- Action Buttons -->
+            <HBox spacing="15" alignment="CENTER">
+                <Button fx:id="clearButton" text="🗑️ Effacer" onAction="#handleClearCanvas"
+                        style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25 10 25; -fx-cursor: hand;">
+                    <font>
+                        <Font name="System Bold" size="14.0"/>
+                    </font>
+                </Button>
+
+                <Button fx:id="saveSignatureButton" text="💾 Sauvegarder la Signature" onAction="#handleSaveSignature"
+                        style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25 10 25; -fx-cursor: hand;">
+                    <font>
+                        <Font name="System Bold" size="14.0"/>
+                    </font>
+                </Button>
+
+                <Button fx:id="deleteSignatureButton" text="🗑️ Supprimer la Signature" onAction="#handleDeleteSignature"
+                        disable="true"
+                        style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25 10 25; -fx-cursor: hand;">
+                    <font>
+                        <Font name="System Bold" size="14.0"/>
+                    </font>
+                </Button>
+            </HBox>
+
+            <!-- Information Box -->
+            <VBox spacing="5" style="-fx-background-color: #e8f5e9; -fx-background-radius: 8; -fx-border-color: #4caf50; -fx-border-radius: 8; -fx-border-width: 2;">
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+                <Label text="ℹ️ Comment utiliser la signature électronique?" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+                <Label text="1. Dessinez votre signature dans la zone ci-dessus" style="-fx-font-size: 12px; -fx-text-fill: #388e3c;"/>
+                <Label text="2. Cliquez sur 'Sauvegarder' pour l'enregistrer" style="-fx-font-size: 12px; -fx-text-fill: #388e3c;"/>
+                <Label text="3. Lors de la création d'une consultation, cochez 'Inclure signature' pour l'ajouter automatiquement aux PDF" style="-fx-font-size: 12px; -fx-text-fill: #388e3c; -fx-wrap-text: true;"/>
+                <Label text="4. Votre signature sera ajoutée en bas de chaque document (ordonnances, certificats, etc.)" style="-fx-font-size: 12px; -fx-text-fill: #388e3c; -fx-wrap-text: true;"/>
+            </VBox>
+        </VBox>
+
+        <!-- Close Button -->
+        <HBox alignment="CENTER">
+            <padding>
+                <Insets top="10" right="0" bottom="0" left="0"/>
+            </padding>
+            <Button text="Fermer" onAction="#handleClose"
+                    style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 40 10 40; -fx-cursor: hand;">
+                <font>
+                    <Font name="System Bold" size="14.0"/>
+                </font>
+            </Button>
+        </HBox>
+
+    </VBox>
+</ScrollPane>

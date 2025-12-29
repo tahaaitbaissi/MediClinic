@@ -1,0 +1,252 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype polyline
+
+' ============================
+' STYLING
+' ============================
+skinparam usecase {
+    BackgroundColor White
+    BorderColor #333333
+    ArrowColor #333333
+}
+skinparam actor {
+    BackgroundColor White
+    BorderColor Black
+}
+skinparam note {
+    BackgroundColor #FEFDD0
+    BorderColor #D4D242
+    FontSize 13
+}
+
+' ============================
+' ACTORS
+' ============================
+actor "Administrateur" as Admin
+actor "Médecin" as Medecin
+actor "Secrétaire" as Secretaire
+actor "Patient" as Patient
+actor "Système Email" as EmailSystem
+
+' ============================
+' PACKAGES & USE CASES
+' ============================
+
+package "Authentification" #E0E0E0 {
+    usecase "Se connecter" as UC_Login
+    usecase "Se déconnecter" as UC_Logout
+    usecase "Gérer les utilisateurs" as UC_ManageUsers
+
+    usecase "Créer utilisateur" as UC_CreateUser
+    usecase "Modifier utilisateur" as UC_EditUser
+    usecase "Supprimer utilisateur" as UC_DeleteUser
+    usecase "Attribuer rôle" as UC_AssignRole
+}
+
+package "Gestion des Patients" #E3F2FD {
+    usecase "Gérer les patients" as UC_ManagePatients
+
+    usecase "Ajouter patient" as UC_AddPatient
+    usecase "Modifier patient" as UC_EditPatient
+    usecase "Supprimer patient" as UC_DeletePatient
+    usecase "Rechercher patient" as UC_SearchPatient
+    usecase "Consulter dossier médical (Vue Admin)" as UC_ViewMedicalRecord
+    usecase "Générer QR Code" as UC_GenerateQRCode
+    usecase "Exporter patients CSV" as UC_ExportPatientsCSV
+
+    usecase "Gérer photo patient" as UC_ManagePhoto
+    usecase "Capturer photo webcam" as UC_CaptureWebcam
+    usecase "Télécharger photo" as UC_UploadPhoto
+}
+
+package "Gestion des Rendez-vous" #E8F5E9 {
+    usecase "Gérer agenda" as UC_ManageAgenda
+
+    usecase "Créer rendez-vous" as UC_CreateAppointment
+    usecase "Modifier rendez-vous" as UC_EditAppointment
+    usecase "Annuler rendez-vous" as UC_CancelAppointment
+    usecase "Confirmer rendez-vous" as UC_ConfirmAppointment
+    usecase "Consulter disponibilités" as UC_CheckAvailability
+    usecase "Envoyer confirmation email" as UC_SendConfirmationEmail
+    usecase "Envoyer rappel email" as UC_SendReminderEmail
+    usecase "Exporter confirmation PDF" as UC_ExportAppointmentPDF
+    usecase "Gérer liste d'attente" as UC_ManageWaitList
+}
+
+package "Gestion Clinique (Médecin)" #E0F2F1 {
+    usecase "Gérer consultations" as UC_ManageConsultations
+    usecase "Gérer dossiers médicaux" as UC_ManageMedicalRecords
+
+    usecase "Créer consultation" as UC_CreateConsultation
+    usecase "Modifier consultation" as UC_EditConsultation
+    usecase "Ajouter observations" as UC_AddObservations
+    usecase "Ajouter diagnostic" as UC_AddDiagnostic
+    usecase "Ajouter prescriptions" as UC_AddPrescriptions
+    usecase "Exporter consultation PDF" as UC_ExportConsultationPDF
+    usecase "Inclure signature électronique" as UC_IncludeSignature
+    usecase "Consulter historique consultations" as UC_ViewConsultationHistory
+
+    usecase "Créer dossier médical" as UC_CreateMedicalRecord
+    usecase "Modifier notes générales" as UC_EditGeneralNotes
+    usecase "Consulter historique complet" as UC_ViewCompleteHistory
+    usecase "Exporter dossier PDF" as UC_ExportMedicalRecordPDF
+}
+
+package "Gestion de Facturation" #FFEBEE {
+    usecase "Gérer factures" as UC_ManageBilling
+
+    usecase "Créer facture" as UC_CreateInvoice
+    usecase "Modifier facture" as UC_EditInvoice
+    usecase "Supprimer facture" as UC_DeleteInvoice
+    usecase "Gérer lignes facture" as UC_ManageInvoiceLines
+    usecase "Marquer comme payée" as UC_MarkAsPaid
+    usecase "Exporter facture PDF" as UC_ExportInvoicePDF
+    usecase "Générer rapport financier" as UC_GenerateFinancialReport
+}
+
+package "Administration Système" #FBE9E7 {
+    usecase "Gérer médecins" as UC_ManageDoctors
+    usecase "Tableau de Bord Global" as UC_Dashboard
+
+    usecase "Ajouter médecin" as UC_AddDoctor
+    usecase "Modifier médecin" as UC_EditDoctor
+    usecase "Supprimer médecin" as UC_DeleteDoctor
+    usecase "Assigner spécialité" as UC_AssignSpecialty
+    usecase "Gérer profil médecin (Signature)" as UC_ManageDoctorProfile
+
+    usecase "Voir statistiques" as UC_ViewStatistics
+    usecase "Voir rendez-vous du jour" as UC_ViewTodayAppointments
+    usecase "Voir graphiques" as UC_ViewCharts
+    usecase "Générer rapport statistiques" as UC_GenerateStatsReport
+    usecase "Exporter rapport quotidien" as UC_ExportDailyReport
+}
+
+' ============================
+' 1. AUTHENTICATION LINKS
+' ============================
+Admin --> UC_Login
+Medecin --> UC_Login
+Secretaire --> UC_Login
+
+Admin --> UC_Logout
+Medecin --> UC_Logout
+Secretaire --> UC_Logout
+
+' ============================
+' 2. ADMIN NOTE (Replaces Clutter)
+' ============================
+Admin --> UC_ManageUsers
+Admin --> UC_ManageDoctors
+' We keep doctors linked to admin as it is specific to them,
+' but we removed the lines to Patients, Billing, Consultations, etc.
+
+note right of Admin
+  <b>SUPER ADMIN</b>
+  Cet acteur dispose de tous les droits.
+  Il peut effectuer toutes les actions
+  des Médecins et Secrétaires, ainsi que
+  l'accès complet aux :
+  * Patients et Dossiers
+  * Facturation
+  * Statistiques
+end note
+
+' ============================
+' 3. DOCTOR LINKS
+' ============================
+Medecin --> UC_ManagePatients
+Medecin --> UC_ManageAgenda
+Medecin --> UC_ManageConsultations
+Medecin --> UC_ManageMedicalRecords
+Medecin --> UC_ManageDoctorProfile
+Medecin --> UC_Dashboard
+
+' ============================
+' 4. SECRETARY LINKS
+' ============================
+Secretaire --> UC_ManagePatients
+Secretaire --> UC_ManageAgenda
+Secretaire --> UC_ManageBilling
+Secretaire --> UC_Dashboard
+Secretaire --> UC_ManageWaitList
+
+' ============================
+' 5. SYSTEM & PATIENT LINKS
+' ============================
+UC_SendConfirmationEmail ..> EmailSystem
+UC_SendReminderEmail ..> EmailSystem
+EmailSystem ..> Patient
+
+' ============================
+' 6. INTERNAL HIERARCHY
+' ============================
+
+' --- Auth ---
+UC_ManageUsers ..> UC_CreateUser : <<include>>
+UC_ManageUsers ..> UC_EditUser : <<include>>
+UC_ManageUsers ..> UC_DeleteUser : <<include>>
+UC_CreateUser ..> UC_AssignRole : <<include>>
+UC_EditUser ..> UC_AssignRole : <<include>>
+
+' --- Patients ---
+UC_ManagePatients ..> UC_AddPatient : <<include>>
+UC_ManagePatients ..> UC_EditPatient : <<include>>
+UC_ManagePatients ..> UC_DeletePatient : <<include>>
+UC_ManagePatients ..> UC_SearchPatient : <<include>>
+UC_ManagePatients ..> UC_ExportPatientsCSV : <<include>>
+UC_ManagePatients ..> UC_ViewMedicalRecord : <<include>>
+UC_AddPatient ..> UC_ManagePhoto : <<include>>
+UC_AddPatient ..> UC_GenerateQRCode : <<include>>
+UC_EditPatient ..> UC_ManagePhoto : <<include>>
+UC_ManagePhoto ..> UC_CaptureWebcam : <<extend>>
+UC_ManagePhoto ..> UC_UploadPhoto : <<extend>>
+
+' --- Agenda ---
+UC_ManageAgenda ..> UC_CreateAppointment : <<include>>
+UC_ManageAgenda ..> UC_EditAppointment : <<include>>
+UC_ManageAgenda ..> UC_CancelAppointment : <<include>>
+UC_ManageAgenda ..> UC_ConfirmAppointment : <<include>>
+UC_ManageAgenda ..> UC_CheckAvailability : <<include>>
+UC_CreateAppointment ..> UC_SendConfirmationEmail : <<include>>
+UC_ConfirmAppointment ..> UC_ExportAppointmentPDF : <<extend>>
+UC_ConfirmAppointment ..> UC_SendConfirmationEmail : <<include>>
+
+' --- Clinical ---
+UC_ManageConsultations ..> UC_CreateConsultation : <<include>>
+UC_ManageConsultations ..> UC_EditConsultation : <<include>>
+UC_ManageConsultations ..> UC_ViewConsultationHistory : <<include>>
+UC_EditConsultation ..> UC_AddObservations : <<include>>
+UC_EditConsultation ..> UC_AddDiagnostic : <<include>>
+UC_EditConsultation ..> UC_AddPrescriptions : <<include>>
+UC_EditConsultation ..> UC_ExportConsultationPDF : <<extend>>
+UC_ExportConsultationPDF ..> UC_IncludeSignature : <<include>>
+UC_ManageMedicalRecords ..> UC_CreateMedicalRecord : <<include>>
+UC_ManageMedicalRecords ..> UC_EditGeneralNotes : <<include>>
+UC_ManageMedicalRecords ..> UC_ViewCompleteHistory : <<include>>
+UC_ViewCompleteHistory ..> UC_ExportMedicalRecordPDF : <<extend>>
+
+' --- Billing ---
+UC_ManageBilling ..> UC_CreateInvoice : <<include>>
+UC_ManageBilling ..> UC_EditInvoice : <<include>>
+UC_ManageBilling ..> UC_DeleteInvoice : <<include>>
+UC_ManageBilling ..> UC_GenerateFinancialReport : <<include>>
+UC_CreateInvoice ..> UC_ManageInvoiceLines : <<include>>
+UC_EditInvoice ..> UC_ManageInvoiceLines : <<include>>
+UC_EditInvoice ..> UC_MarkAsPaid : <<include>>
+UC_CreateInvoice ..> UC_ExportInvoicePDF : <<extend>>
+
+' --- System ---
+UC_ManageDoctors ..> UC_AddDoctor : <<include>>
+UC_ManageDoctors ..> UC_EditDoctor : <<include>>
+UC_ManageDoctors ..> UC_DeleteDoctor : <<include>>
+UC_AddDoctor ..> UC_AssignSpecialty : <<include>>
+UC_EditDoctor ..> UC_AssignSpecialty : <<include>>
+UC_Dashboard ..> UC_ViewStatistics : <<include>>
+UC_Dashboard ..> UC_ViewTodayAppointments : <<include>>
+UC_ViewTodayAppointments ..> UC_ExportDailyReport : <<extend>>
+UC_ViewStatistics ..> UC_ViewCharts : <<include>>
+UC_ViewStatistics ..> UC_GenerateStatsReport : <<include>>
+@enduml

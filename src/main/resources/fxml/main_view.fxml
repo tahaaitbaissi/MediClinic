@@ -50,6 +50,12 @@
                         />
                     </VBox>
                     <Button
+                        text="🖋️ Mon Profil"
+                        styleClass="btn-primary"
+                        onAction="#openDoctorProfile"
+                        style="-fx-padding: 10 20; -fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;"
+                    />
+                    <Button
                         text="Déconnexion"
                         styleClass="btn-danger"
                         fx:id="logoutBtn"

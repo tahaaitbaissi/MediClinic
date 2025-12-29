@@ -1,0 +1,926 @@
+@startuml MediClinic Class Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' ========================================
+' ENUMS
+' ========================================
+
+enum Role {
+    ADMIN
+    MEDECIN
+    SEC
+}
+
+enum RendezVousStatus {
+    PLANIFIE
+    CONFIRME
+    ANNULE
+    TERMINE
+}
+
+enum SpecialiteMedecin {
+    GENERALISTE
+    PEDIATRE
+    CARDIOLOGUE
+    DERMATOLOGUE
+    OPHTALMOLOGUE
+    DENTISTE
+    CHIRURGIEN
+    AUTRE
+}
+
+enum TypePaiement {
+    CARTE_CREDIT
+    ESPECES
+    CHEQUE
+    VIREMENT
+    ASSURANCE
+}
+
+' ========================================
+' MODEL CLASSES
+' ========================================
+
+class Patient {
+    - id: Long
+    - nom: String
+    - prenom: String
+    - dateNaissance: LocalDate
+    - email: String
+    - telephone: String
+    - adresse: String
+    - rendezVousList: List<RendezVous>
+    - dossierMedical: DossierMedical
+    --
+    + Patient()
+    + Patient(nom: String, prenom: String, dateNaissance: LocalDate, email: String, telephone: String, adresse: String)
+    + getId(): Long
+    + setId(id: Long): void
+    + getNom(): String
+    + setNom(nom: String): void
+    + getPrenom(): String
+    + setPrenom(prenom: String): void
+    + getDateNaissance(): LocalDate
+    + setDateNaissance(dateNaissance: LocalDate): void
+    + getEmail(): String
+    + setEmail(email: String): void
+    + getTelephone(): String
+    + setTelephone(telephone: String): void
+    + getAdresse(): String
+    + setAdresse(adresse: String): void
+    + getRendezVousList(): List<RendezVous>
+    + setRendezVousList(rendezVousList: List<RendezVous>): void
+    + getDossierMedical(): DossierMedical
+    + setDossierMedical(dossierMedical: DossierMedical): void
+    + getNomComplet(): String
+}
+
+class Medecin {
+    - id: Long
+    - nom: String
+    - prenom: String
+    - specialite: SpecialiteMedecin
+    - email: String
+    - telephone: String
+    - hasSignature: boolean
+    --
+    + Medecin()
+    + Medecin(nom: String, prenom: String, specialite: SpecialiteMedecin, email: String, telephone: String)
+    + getId(): Long
+    + setId(id: Long): void
+    + getNom(): String
+    + setNom(nom: String): void
+    + getPrenom(): String
+    + setPrenom(prenom: String): void
+    + getSpecialite(): SpecialiteMedecin
+    + setSpecialite(specialite: SpecialiteMedecin): void
+    + getEmail(): String
+    + setEmail(email: String): void
+    + getTelephone(): String
+    + setTelephone(telephone: String): void
+    + getNomComplet(): String
+    + isHasSignature(): boolean
+    + setHasSignature(hasSignature: boolean): void
+}
+
+class User {
+    - id: Long
+    - username: String
+    - passwordHash: String
+    - role: Role
+    - medecin: Medecin
+    --
+    + User()
+    + User(username: String, passwordHash: String, role: Role)
+    + getId(): Long
+    + getUsername(): String
+    + setUsername(username: String): void
+    + getPasswordHash(): String
+    + setPasswordHash(passwordHash: String): void
+    + getRole(): Role
+    + setRole(role: Role): void
+    + getMedecin(): Medecin
+    + setMedecin(medecin: Medecin): void
+}
+
+class RendezVous {
+    - id: Long
+    - patient: Patient
+    - medecin: Medecin
+    - dateHeureDebut: LocalDateTime
+    - dateHeureFin: LocalDateTime
+    - status: RendezVousStatus
+    - motif: String
+    - consultation: Consultation
+    --
+    + RendezVous()
+    + RendezVous(patient: Patient, medecin: Medecin, dateHeureDebut: LocalDateTime, dateHeureFin: LocalDateTime, motif: String)
+    + getId(): Long
+    + setId(id: Long): void
+    + getPatient(): Patient
+    + setPatient(patient: Patient): void
+    + getMedecin(): Medecin
+    + setMedecin(medecin: Medecin): void
+    + getDateHeureDebut(): LocalDateTime
+    + setDateHeureDebut(dateHeureDebut: LocalDateTime): void
+    + getDateHeureFin(): LocalDateTime
+    + setDateHeureFin(dateHeureFin: LocalDateTime): void
+    + getStatus(): RendezVousStatus
+    + setStatus(status: RendezVousStatus): void
+    + getMotif(): String
+    + setMotif(motif: String): void
+    + getConsultation(): Consultation
+    + setConsultation(consultation: Consultation): void
+    + getDuree(): Duration
+    + isOverlap(other: RendezVous): boolean
+}
+
+class DossierMedical {
+    - id: Long
+    - patient: Patient
+    - dateCreation: LocalDate
+    - notesGenerales: String
+    - historiqueConsultations: List<Consultation>
+    --
+    + DossierMedical()
+    + DossierMedical(patient: Patient, notesGenerales: String)
+    + getId(): Long
+    + setId(id: Long): void
+    + getPatient(): Patient
+    + setPatient(patient: Patient): void
+    + getDateCreation(): LocalDate
+    + setDateCreation(dateCreation: LocalDate): void
+    + getNotesGenerales(): String
+    + setNotesGenerales(notesGenerales: String): void
+    + getHistoriqueConsultations(): List<Consultation>
+    + setHistoriqueConsultations(historiqueConsultations: List<Consultation>): void
+    + addConsultation(consultation: Consultation): void
+}
+
+class Consultation {
+    - id: Long
+    - dossierMedical: DossierMedical
+    - rendezVous: RendezVous
+    - dateConsultation: LocalDateTime
+    - observations: String
+    - diagnostic: String
+    - prescriptions: String
+    --
+    + Consultation()
+    + Consultation(dossierMedical: DossierMedical, rendezVous: RendezVous, observations: String, diagnostic: String, prescriptions: String)
+    + getId(): Long
+    + setId(id: Long): void
+    + getDossierMedical(): DossierMedical
+    + setDossierMedical(dossierMedical: DossierMedical): void
+    + getRendezVous(): RendezVous
+    + setRendezVous(rendezVous: RendezVous): void
+    + getDateConsultation(): LocalDateTime
+    + setDateConsultation(dateConsultation: LocalDateTime): void
+    + getObservations(): String
+    + setObservations(observations: String): void
+    + getDiagnostic(): String
+    + setDiagnostic(diagnostic: String): void
+    + getPrescriptions(): String
+    + setPrescriptions(prescriptions: String): void
+}
+
+class Facture {
+    - id: Long
+    - patient: Patient
+    - rendezVous: RendezVous
+    - dateFacturation: LocalDate
+    - montantTotal: BigDecimal
+    - estPayee: boolean
+    - typePaiement: TypePaiement
+    - lignes: List<LigneFacture>
+    --
+    + Facture()
+    + Facture(patient: Patient, rendezVous: RendezVous)
+    + getId(): Long
+    + setId(id: Long): void
+    + getPatient(): Patient
+    + setPatient(patient: Patient): void
+    + getRendezVous(): RendezVous
+    + setRendezVous(rendezVous: RendezVous): void
+    + getDateFacturation(): LocalDate
+    + setDateFacturation(dateFacturation: LocalDate): void
+    + getMontantTotal(): BigDecimal
+    + setMontantTotal(montantTotal: BigDecimal): void
+    + isEstPayee(): boolean
+    + setEstPayee(estPayee: boolean): void
+    + getTypePaiement(): TypePaiement
+    + setTypePaiement(typePaiement: TypePaiement): void
+    + getLignes(): List<LigneFacture>
+    + setLignes(lignes: List<LigneFacture>): void
+    + addLigne(ligne: LigneFacture): void
+    + removeLigne(ligne: LigneFacture): void
+    + calculerMontantTotal(): void
+}
+
+class LigneFacture {
+    - id: Long
+    - facture: Facture
+    - description: String
+    - prixUnitaire: BigDecimal
+    - quantite: int
+    - montantLigne: BigDecimal
+    --
+    + LigneFacture()
+    + LigneFacture(facture: Facture, description: String, prixUnitaire: BigDecimal, quantite: int)
+    + getId(): Long
+    + setId(id: Long): void
+    + getFacture(): Facture
+    + setFacture(facture: Facture): void
+    + getDescription(): String
+    + setDescription(description: String): void
+    + getPrixUnitaire(): BigDecimal
+    + setPrixUnitaire(prixUnitaire: BigDecimal): void
+    + getQuantite(): int
+    + setQuantite(quantite: int): void
+    + getMontantLigne(): BigDecimal
+    + setMontantLigne(montantLigne: BigDecimal): void
+    + calculerMontant(): void
+}
+
+' ========================================
+' DAO CLASSES
+' ========================================
+
+interface GenericDAO<T, ID> {
+    + save(entity: T): T
+    + findById(id: ID): T
+    + findAll(): List<T>
+    + update(entity: T): void
+    + delete(entity: T): void
+}
+
+abstract class AbstractDAO<T, ID> {
+    # entityClass: Class<T>
+    --
+    + AbstractDAO()
+    + save(entity: T): T
+    + findById(id: ID): T
+    + findAll(): List<T>
+    + update(entity: T): void
+    + delete(entity: T): void
+    # getEntityClass(): Class<T>
+}
+
+class PatientDAO {
+    + PatientDAO()
+    + findByEmail(email: String): Patient
+    + findByNom(nom: String): List<Patient>
+    + searchPatients(keyword: String): List<Patient>
+}
+
+class MedecinDAO {
+    + MedecinDAO()
+    + findByEmail(email: String): Medecin
+    + findBySpecialite(specialite: SpecialiteMedecin): List<Medecin>
+}
+
+class UserDAO {
+    + UserDAO()
+    + findByUsername(username: String): User
+    + findByRole(role: Role): List<User>
+}
+
+class RendezVousDAO {
+    + RendezVousDAO()
+    + findByPatientId(patientId: Long): List<RendezVous>
+    + findByMedecinId(medecinId: Long): List<RendezVous>
+    + findByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): List<RendezVous>
+    + findByMedecinAndDateRange(medecinId: Long, startDate: LocalDateTime, endDate: LocalDateTime): List<RendezVous>
+    + findByStatus(status: RendezVousStatus): List<RendezVous>
+    + countByStatus(status: RendezVousStatus): Long
+}
+
+class ConsultationDAO {
+    + ConsultationDAO()
+    + findByRendezVousId(rdvId: Long): Consultation
+    + findByMedecinId(medecinId: Long): List<Consultation>
+    + findByDossierId(dossierId: Long): List<Consultation>
+    + findByIdWithAllDetails(consultationId: Long): Consultation
+}
+
+class DossierMedicalDAO {
+    + DossierMedicalDAO()
+    + findByPatientId(patientId: Long): DossierMedical
+}
+
+class FactureDAO {
+    + FactureDAO()
+    + findByPatientId(patientId: Long): List<Facture>
+    + findByRendezVousId(rdvId: Long): Facture
+    + findByDateRange(startDate: LocalDate, endDate: LocalDate): List<Facture>
+    + findUnpaidInvoices(): List<Facture>
+    + calculateTotalRevenue(startDate: LocalDate, endDate: LocalDate): BigDecimal
+}
+
+class LigneFactureDAO {
+    + LigneFactureDAO()
+    + findByFactureId(factureId: Long): List<LigneFacture>
+}
+
+' ========================================
+' SERVICE CLASSES
+' ========================================
+
+class PatientService {
+    - patientDAO: PatientDAO
+    - dossierMedicalDAO: DossierMedicalDAO
+    --
+    + PatientService()
+    + createPatient(patient: Patient): Patient
+    + updatePatient(patient: Patient): Patient
+    + deletePatient(patientId: Long): void
+    + findById(id: Long): Patient
+    + findAll(): List<Patient>
+    + searchPatients(keyword: String): List<Patient>
+    + createDossierMedical(patientId: Long): DossierMedical
+}
+
+class MedecinService {
+    - medecinDAO: MedecinDAO
+    --
+    + MedecinService()
+    + createMedecin(medecin: Medecin): Medecin
+    + updateMedecin(medecin: Medecin): Medecin
+    + deleteMedecin(medecinId: Long): void
+    + findById(id: Long): Medecin
+    + findAll(): List<Medecin>
+    + findBySpecialite(specialite: SpecialiteMedecin): List<Medecin>
+}
+
+class UserService {
+    - userDAO: UserDAO
+    --
+    + UserService()
+    + createUser(user: User): User
+    + updateUser(user: User): User
+    + deleteUser(userId: Long): void
+    + findById(id: Long): User
+    + findAll(): List<User>
+    + findByUsername(username: String): User
+}
+
+class AuthService {
+    - userDAO: UserDAO
+    --
+    + AuthService()
+    + authenticate(username: String, password: String): User
+    + hashPassword(password: String): String
+    + verifyPassword(password: String, hash: String): boolean
+}
+
+class RendezVousService {
+    - rendezVousDAO: RendezVousDAO
+    - consultationService: ConsultationService
+    --
+    + RendezVousService()
+    + createRendezVous(rdv: RendezVous): RendezVous
+    + updateRendezVous(rdv: RendezVous): RendezVous
+    + cancelRendezVous(rdvId: Long): void
+    + confirmRendezVous(rdvId: Long): void
+    + completeRendezVous(rdvId: Long): void
+    + checkAvailability(medecinId: Long, startDateTime: LocalDateTime, endDateTime: LocalDateTime): boolean
+    + findByPatient(patientId: Long): List<RendezVous>
+    + findByMedecin(medecinId: Long): List<RendezVous>
+    + findByDateRange(startDate: LocalDateTime, endDate: LocalDateTime): List<RendezVous>
+    + findUpcomingAppointments(date: LocalDate): List<RendezVous>
+}
+
+class ConsultationService {
+    - consultationDAO: ConsultationDAO
+    - dossierMedicalDAO: DossierMedicalDAO
+    --
+    + ConsultationService()
+    + createConsultationFromRendezVous(rdv: RendezVous): Consultation
+    + updateConsultationNotes(consultationId: Long, observations: String, diagnostic: String, prescriptions: String): Consultation
+    + getConsultationsByDossier(dossierId: Long): List<Consultation>
+    + findById(id: Long): Consultation
+    + findByIdWithAllDetails(id: Long): Consultation
+}
+
+class FacturationService {
+    - factureDAO: FactureDAO
+    - ligneFactureDAO: LigneFactureDAO
+    --
+    + FacturationService()
+    + createFacture(facture: Facture): Facture
+    + updateFacture(facture: Facture): Facture
+    + deleteFacture(factureId: Long): void
+    + addLigneFacture(factureId: Long, ligne: LigneFacture): void
+    + removeLigneFacture(ligneId: Long): void
+    + markAsPaid(factureId: Long, typePaiement: TypePaiement): void
+    + findByPatient(patientId: Long): List<Facture>
+    + calculateRevenue(startDate: LocalDate, endDate: LocalDate): BigDecimal
+}
+
+class DashboardService {
+    - rendezVousDAO: RendezVousDAO
+    - patientDAO: PatientDAO
+    - factureDAO: FactureDAO
+    --
+    + DashboardService()
+    + getAppointmentsForToday(medecinId: Long): List<RendezVous>
+    + getTodayStatistics(): Map<String, Object>
+    + getAppointmentsByStatus(): Map<String, Long>
+    + getMonthlyRevenue(): Map<String, BigDecimal>
+}
+
+class PdfService {
+    - {static} DATE_FORMATTER: DateTimeFormatter
+    - {static} DATETIME_FORMATTER: DateTimeFormatter
+    - {static} PRIMARY_COLOR: DeviceRgb
+    - {static} SECONDARY_COLOR: DeviceRgb
+    - {static} LIGHT_GRAY: DeviceRgb
+    - {static} SUCCESS_GREEN: DeviceRgb
+    --
+    + PdfService()
+    + generateFacturePdf(facture: Facture, outputPath: String): void
+    + generateDailyReport(appointments: List<RendezVous>, date: LocalDate, outputPath: String): void
+    + generateStatisticsReport(stats: Map<String, Object>, outputPath: String): void
+    + generateFinancialReport(factures: List<Facture>, startDate: LocalDate, endDate: LocalDate, outputPath: String): void
+    + generateDossierMedicalPdf(dossier: DossierMedical, consultations: List<Consultation>, outputPath: String): void
+    + generateAppointmentConfirmationPdf(rdv: RendezVous, outputPath: String): void
+    + generateConsultationPdf(consultation: Consultation, outputPath: String, includeSignature: boolean): void
+    + addElectronicSignature(document: Document, medecinId: Long, addTimestamp: boolean): boolean
+    + addSignatureAtPosition(document: Document, medecinId: Long, x: float, y: float): boolean
+    + hasSignature(medecinId: Long): boolean
+    - addHeader(document: Document, title: String, subtitle: String): void
+    - addFooter(document: Document): void
+    - addTableHeader(table: Table, text: String): void
+    - addTableCell(table: Table, text: String, isBold: boolean): void
+    - addStatusCell(table: Table, status: String, color: DeviceRgb): void
+    - addStatCard(table: Table, label: String, value: String, color: DeviceRgb): void
+    - addInfoCell(table: Table, label: String, value: String): void
+}
+
+class EmailService {
+    - {static} SMTP_HOST: String
+    - {static} SMTP_PORT: int
+    - {static} FROM_EMAIL: String
+    --
+    + EmailService()
+    + sendAppointmentConfirmation(rdv: RendezVous): void
+    + sendAppointmentReminder(rdv: RendezVous): void
+    + sendSimpleEmail(to: String, subject: String, body: String): void
+    - createEmailSession(): Session
+}
+
+class AppointmentReminderService {
+    - rendezVousService: RendezVousService
+    - emailService: EmailService
+    --
+    + AppointmentReminderService()
+    + sendRemindersForTomorrow(): void
+    + scheduleAutomaticReminders(): void
+}
+
+class PhotoService {
+    - {static} PHOTO_DIR: String
+    - {static} PHOTO_FORMAT: String
+    --
+    + PhotoService()
+    + savePatientPhoto(patientId: Long, image: BufferedImage): boolean
+    + loadPatientPhoto(patientId: Long): BufferedImage
+    + deletePatientPhoto(patientId: Long): boolean
+    + hasPhoto(patientId: Long): boolean
+    + getPhotoPath(patientId: Long): String
+}
+
+class SignatureService {
+    - {static} SIGNATURE_DIR: String
+    - {static} SIGNATURE_FORMAT: String
+    --
+    + SignatureService()
+    + saveSignature(medecinId: Long, image: BufferedImage): boolean
+    + loadSignature(medecinId: Long): BufferedImage
+    + deleteSignature(medecinId: Long): boolean
+    + hasSignature(medecinId: Long): boolean
+    + getSignaturePath(medecinId: Long): String
+    + validateSignature(image: BufferedImage): boolean
+}
+
+class QRCodeService {
+    - {static} QR_CODE_SIZE: int
+    --
+    + QRCodeService()
+    + generateQRCode(patientId: Long): BufferedImage
+    + decodeQRCode(image: BufferedImage): Long
+    + saveQRCodeToFile(patientId: Long, outputPath: String): void
+}
+
+class CsvService {
+    + CsvService()
+    + exportPatientsToCsv(patients: List<Patient>, outputPath: String): void
+    + importPatientsFromCsv(inputPath: String): List<Patient>
+}
+
+' ========================================
+' CONTROLLER CLASSES
+' ========================================
+
+class LoginController {
+    - usernameField: TextField
+    - passwordField: PasswordField
+    - authService: AuthService
+    --
+    + LoginController()
+    + initialize(): void
+    + handleLogin(): void
+    + handleForgotPassword(): void
+}
+
+class MainController {
+    - menuBar: MenuBar
+    - contentArea: BorderPane
+    - userLabel: Label
+    --
+    + MainController()
+    + initialize(): void
+    + loadDashboard(): void
+    + loadPatients(): void
+    + loadAgenda(): void
+    + loadDoctors(): void
+    + loadBilling(): void
+    + loadUsers(): void
+    + openDoctorProfile(): void
+    + handleLogout(): void
+}
+
+class DashboardController {
+    - upcomingAppointmentsTable: TableView<RendezVous>
+    - statsContainer: VBox
+    - chartContainer: VBox
+    - dashboardService: DashboardService
+    --
+    + DashboardController()
+    + initialize(): void
+    + loadUpcomingAppointments(): void
+    + initializeStats(): void
+    + initializeCharts(): void
+    + setupRoleBasedUI(): void
+}
+
+class PatientController {
+    - patientTable: TableView<Patient>
+    - searchField: TextField
+    - patientService: PatientService
+    - photoService: PhotoService
+    - qrCodeService: QRCodeService
+    --
+    + PatientController()
+    + initialize(): void
+    + handleAddPatient(): void
+    + handleEditPatient(): void
+    + handleDeletePatient(): void
+    + handleSearchPatient(): void
+    + handleViewMedicalRecord(): void
+    + handleCapturePhoto(): void
+    + handleUploadPhoto(): void
+    + handleGenerateQRCode(): void
+    + handleScanQRCode(): void
+    + handleExportCSV(): void
+    + refreshTable(): void
+}
+
+class AgendaController {
+    - agendaView: CalendarView
+    - appointmentTable: TableView<RendezVous>
+    - rendezVousService: RendezVousService
+    - emailService: EmailService
+    --
+    + AgendaController()
+    + initialize(): void
+    + handleCreateAppointment(): void
+    + handleEditAppointment(): void
+    + handleCancelAppointment(): void
+    + handleConfirmAppointment(): void
+    + handleCompleteAppointment(): void
+    + checkAvailability(): void
+    + sendConfirmationEmail(): void
+    + refreshAgenda(): void
+}
+
+class ConsultationsController {
+    - consultationTable: TableView<Consultation>
+    - consultationService: ConsultationService
+    --
+    + ConsultationsController()
+    + initialize(): void
+    + handleViewConsultation(): void
+    + handleEditConsultation(): void
+    + refreshTable(): void
+}
+
+class ConsultationEditorController {
+    - observationsArea: TextArea
+    - diagnosticArea: TextArea
+    - prescriptionsArea: TextArea
+    - includeSignatureCheckBox: CheckBox
+    - consultationService: ConsultationService
+    - pdfService: PdfService
+    --
+    + ConsultationEditorController()
+    + initData(consultation: Consultation): void
+    + handleSave(): void
+    + handleExportPdf(): void
+    + handleClose(): void
+    + updateSignatureCheckbox(): void
+    + {static} openEditor(consultation: Consultation): void
+}
+
+class DoctorController {
+    - doctorTable: TableView<Medecin>
+    - medecinService: MedecinService
+    --
+    + DoctorController()
+    + initialize(): void
+    + handleAddDoctor(): void
+    + handleEditDoctor(): void
+    + handleDeleteDoctor(): void
+    + refreshTable(): void
+}
+
+class DoctorProfileController {
+    - doctorNameLabel: Label
+    - doctorSpecialtyLabel: Label
+    - signatureCanvas: Canvas
+    - currentSignatureView: ImageView
+    - signatureStatusLabel: Label
+    - signatureService: SignatureService
+    --
+    + DoctorProfileController()
+    + initialize(): void
+    + handleClearCanvas(): void
+    + handleSaveSignature(): void
+    + handleDeleteSignature(): void
+    + handleClose(): void
+    + loadDoctorInfo(): void
+    + loadExistingSignature(): void
+    + updateSignatureStatus(): void
+}
+
+class BillingController {
+    - factureTable: TableView<Facture>
+    - ligneTable: TableView<LigneFacture>
+    - facturationService: FacturationService
+    - pdfService: PdfService
+    --
+    + BillingController()
+    + initialize(): void
+    + handleCreateInvoice(): void
+    + handleEditInvoice(): void
+    + handleDeleteInvoice(): void
+    + handleAddLine(): void
+    + handleEditLine(): void
+    + handleDeleteLine(): void
+    + handleMarkAsPaid(): void
+    + handleExportPDF(): void
+    + handleGenerateFinancialReport(): void
+    + refreshTable(): void
+}
+
+class UserController {
+    - userTable: TableView<User>
+    - userService: UserService
+    - authService: AuthService
+    --
+    + UserController()
+    + initialize(): void
+    + handleAddUser(): void
+    + handleEditUser(): void
+    + handleDeleteUser(): void
+    + refreshTable(): void
+}
+
+class DossierController {
+    - consultationTable: TableView<Consultation>
+    - notesArea: TextArea
+    - consultationService: ConsultationService
+    - pdfService: PdfService
+    --
+    + DossierController()
+    + initData(dossier: DossierMedical): void
+    + handleExportPDF(): void
+    + refreshConsultations(): void
+}
+
+class QRScannerController {
+    - videoView: ImageView
+    - resultLabel: Label
+    - qrCodeService: QRCodeService
+    --
+    + QRScannerController()
+    + initialize(): void
+    + startCamera(): void
+    + stopCamera(): void
+    + scanQRCode(): void
+}
+
+class WaitListController {
+    - waitListTable: TableView<RendezVous>
+    - rendezVousService: RendezVousService
+    --
+    + WaitListController()
+    + initialize(): void
+    + handleAddToWaitList(): void
+    + handleRemoveFromWaitList(): void
+    + refreshTable(): void
+}
+
+' ========================================
+' UTILITY CLASSES
+' ========================================
+
+class HibernateUtil {
+    - {static} sessionFactory: SessionFactory
+    --
+    + {static} getSessionFactory(): SessionFactory
+    + {static} shutdown(): void
+    - {static} buildSessionFactory(): SessionFactory
+}
+
+class UserSession {
+    - {static} instance: UserSession
+    - user: User
+    --
+    - UserSession(user: User)
+    + {static} setInstance(user: User): void
+    + {static} getInstance(): UserSession
+    + getUser(): User
+    + {static} isAuthenticated(): boolean
+    + hasRole(role: Role): boolean
+    + hasAnyRole(roles: Role...): boolean
+    + {static} getMedecinId(): Long
+    + {static} isLoggedIn(): boolean
+    + {static} clean(): void
+}
+
+class PermissionChecker {
+    + {static} hasPermission(requiredRole: Role): boolean
+    + {static} hasAnyPermission(requiredRoles: Role...): boolean
+    + {static} checkPermission(requiredRole: Role): void
+    + {static} isAdmin(): boolean
+    + {static} isMedecin(): boolean
+    + {static} isSecretaire(): boolean
+}
+
+class ConfigurationManager {
+    - properties: Properties
+    --
+    + ConfigurationManager()
+    + loadConfiguration(): void
+    + getProperty(key: String): String
+    + getProperty(key: String, defaultValue: String): String
+    + setProperty(key: String, value: String): void
+    + saveConfiguration(): void
+}
+
+class DefaultAvatarGenerator {
+    + {static} generateAvatar(name: String, size: int): BufferedImage
+    + {static} generateColorFromName(name: String): Color
+    + {static} getInitials(name: String): String
+}
+
+class MainApp {
+    - primaryStage: Stage
+    --
+    + start(primaryStage: Stage): void
+    + {static} main(args: String[]): void
+}
+
+' ========================================
+' RELATIONSHIPS - Models
+' ========================================
+
+Patient "1" -- "0..1" DossierMedical : has >
+Patient "1" -- "0..*" RendezVous : schedules >
+Patient "1" -- "0..*" Facture : receives >
+
+Medecin "1" -- "0..*" RendezVous : manages >
+Medecin "1" -- "0..1" User : linkedTo >
+
+User "1" -- "1" Role : has >
+User "0..1" -- "0..1" Medecin : linkedTo >
+
+RendezVous "1" -- "1" RendezVousStatus : has >
+RendezVous "0..1" -- "0..1" Consultation : generates >
+RendezVous "0..1" -- "0..1" Facture : invoicedBy >
+
+DossierMedical "1" -- "0..*" Consultation : contains >
+
+Consultation "1" -- "1" DossierMedical : belongsTo >
+Consultation "1" -- "1" RendezVous : documentsFrom >
+
+Facture "1" -- "1" TypePaiement : paidWith >
+Facture "1" -- "1..*" LigneFacture : contains >
+
+LigneFacture "*" -- "1" Facture : belongsTo >
+
+Medecin -- SpecialiteMedecin : has >
+
+' ========================================
+' RELATIONSHIPS - DAO
+' ========================================
+
+GenericDAO <|.. AbstractDAO : implements
+AbstractDAO <|-- PatientDAO : extends
+AbstractDAO <|-- MedecinDAO : extends
+AbstractDAO <|-- UserDAO : extends
+AbstractDAO <|-- RendezVousDAO : extends
+AbstractDAO <|-- ConsultationDAO : extends
+AbstractDAO <|-- DossierMedicalDAO : extends
+AbstractDAO <|-- FactureDAO : extends
+AbstractDAO <|-- LigneFactureDAO : extends
+
+PatientDAO ..> Patient : manages
+MedecinDAO ..> Medecin : manages
+UserDAO ..> User : manages
+RendezVousDAO ..> RendezVous : manages
+ConsultationDAO ..> Consultation : manages
+DossierMedicalDAO ..> DossierMedical : manages
+FactureDAO ..> Facture : manages
+LigneFactureDAO ..> LigneFacture : manages
+
+' ========================================
+' RELATIONSHIPS - Services
+' ========================================
+
+PatientService ..> PatientDAO : uses
+PatientService ..> DossierMedicalDAO : uses
+MedecinService ..> MedecinDAO : uses
+UserService ..> UserDAO : uses
+AuthService ..> UserDAO : uses
+RendezVousService ..> RendezVousDAO : uses
+RendezVousService ..> ConsultationService : uses
+ConsultationService ..> ConsultationDAO : uses
+ConsultationService ..> DossierMedicalDAO : uses
+FacturationService ..> FactureDAO : uses
+FacturationService ..> LigneFactureDAO : uses
+DashboardService ..> RendezVousDAO : uses
+DashboardService ..> PatientDAO : uses
+DashboardService ..> FactureDAO : uses
+AppointmentReminderService ..> RendezVousService : uses
+AppointmentReminderService ..> EmailService : uses
+PdfService ..> SignatureService : uses
+
+' ========================================
+' RELATIONSHIPS - Controllers
+' ========================================
+
+LoginController ..> AuthService : uses
+MainController ..> UserSession : uses
+DashboardController ..> DashboardService : uses
+PatientController ..> PatientService : uses
+PatientController ..> PhotoService : uses
+PatientController ..> QRCodeService : uses
+AgendaController ..> RendezVousService : uses
+AgendaController ..> EmailService : uses
+ConsultationsController ..> ConsultationService : uses
+ConsultationEditorController ..> ConsultationService : uses
+ConsultationEditorController ..> PdfService : uses
+DoctorController ..> MedecinService : uses
+DoctorProfileController ..> SignatureService : uses
+BillingController ..> FacturationService : uses
+BillingController ..> PdfService : uses
+UserController ..> UserService : uses
+UserController ..> AuthService : uses
+DossierController ..> ConsultationService : uses
+DossierController ..> PdfService : uses
+QRScannerController ..> QRCodeService : uses
+WaitListController ..> RendezVousService : uses
+
+' ========================================
+' RELATIONSHIPS - Utilities
+' ========================================
+
+AbstractDAO ..> HibernateUtil : uses
+UserSession ..> User : manages
+PermissionChecker ..> UserSession : uses
+MainApp ..> LoginController : starts
+
+@enduml

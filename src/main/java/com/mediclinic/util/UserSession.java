@@ -60,6 +60,26 @@ public class UserSession {
         return false;
     }
 
+    /**
+     * Get the medecin ID for the current user (if user is a doctor)
+     */
+    public static Long getMedecinId() {
+        if (instance == null || instance.user == null) {
+            return null;
+        }
+        if (instance.user.getMedecin() == null) {
+            return null;
+        }
+        return instance.user.getMedecin().getId();
+    }
+
+    /**
+     * Check if a user is logged in (alias for isAuthenticated)
+     */
+    public static boolean isLoggedIn() {
+        return isAuthenticated();
+    }
+
     public static void clean() {
         instance = null;
     }
