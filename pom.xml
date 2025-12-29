@@ -35,6 +35,11 @@
             <version>${javafx.version}</version>
             <classifier>win</classifier>
         </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.hibernate.orm</groupId>
@@ -98,6 +103,12 @@
             <version>3.5.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.sarxos</groupId>
+            <artifactId>webcam-capture</artifactId>
+            <version>0.3.12</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -108,6 +119,19 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.mediclinic.MainApp</mainClass>
+                    <options>
+                        <option>-Dawt.toolkit.name=WLToolkit</option>
+
+                        <option>-Dglass.gtk.uiScale=1.5</option>
+
+                        <option>-Dsun.java2d.vulkan=True</option>
+
+                        <option>--enable-native-access=ALL-UNNAMED</option>
+                        <option>-Djavafx.args="--enable-native-access=ALL-UNNAMED"</option>
+                        <option>-Djava.awt.headless=false</option>
+
+                        <option>-Djava.awt.headless=false</option>
+                    </options>
                 </configuration>
             </plugin>
         </plugins>
