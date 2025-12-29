@@ -18,7 +18,7 @@ public class DossierMedicalDAO extends AbstractDAO<DossierMedical, Long> {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            String hql = "FROM DossierMedical d WHERE d.patient.id = :patientId";
+            String hql = "FROM DossierMedical d JOIN FETCH d.patient WHERE d.patient.id = :patientId";
             DossierMedical result = session.createQuery(hql, DossierMedical.class)
                     .setParameter("patientId", patientId)
                     .uniqueResult();

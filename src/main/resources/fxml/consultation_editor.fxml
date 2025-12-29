@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.ConsultationEditorController" spacing="10">
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15" />
+    </padding>
+    <children>
+        <Label fx:id="titleLabel" text="Consultation médicale" styleClass="title" />
+        <GridPane hgap="10" vgap="8">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" minWidth="120" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <children>
+                <Label text="Patient:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                <Label fx:id="patientLabel" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+                <Label text="Date:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                <Label fx:id="dateLabel" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+                <Label text="Motif:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                <Label fx:id="motifLabel" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+            </children>
+        </GridPane>
+
+        <TitledPane text="Observations">
+            <content>
+                <TextArea fx:id="observationsArea" prefRowCount="4" wrapText="true" />
+            </content>
+        </TitledPane>
+
+        <TitledPane text="Diagnostic">
+            <content>
+                <TextArea fx:id="diagnosticArea" prefRowCount="4" wrapText="true" />
+            </content>
+        </TitledPane>
+
+        <TitledPane text="Prescriptions">
+            <content>
+                <TextArea fx:id="prescriptionsArea" prefRowCount="4" wrapText="true" />
+            </content>
+        </TitledPane>
+
+        <HBox spacing="10">
+            <Button fx:id="saveBtn" text="Enregistrer" styleClass="btn-success btn-actions" onAction="#handleSave" />
+            <Button text="Fermer" styleClass="btn-danger btn-actions" onAction="#handleClose" />
+        </HBox>
+    </children>
+</VBox>

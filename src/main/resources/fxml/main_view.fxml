@@ -83,6 +83,12 @@
                     fx:id="agendaBtn"
                 />
                 <Button
+                    text="Consultations"
+                    styleClass="sidebar-button"
+                    onAction="#showConsultations"
+                    fx:id="consultationsBtn"
+                />
+                <Button
                     text="Médecins"
                     styleClass="sidebar-button"
                     onAction="#showDoctors"

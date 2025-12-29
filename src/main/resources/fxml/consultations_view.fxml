@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.ConsultationsController" spacing="10">
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15" />
+    </padding>
+    <children>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Consultations" styleClass="title" />
+            <Label fx:id="contextLabel" />
+            <Region HBox.hgrow="ALWAYS" />
+            <TextField fx:id="searchField" promptText="Rechercher..." prefWidth="250" />
+            <Button text="Actualiser" onAction="#handleRefresh" />
+        </HBox>
+        <TableView fx:id="consultationTable">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="80" />
+                <TableColumn fx:id="colDate" text="Date" prefWidth="180" />
+                <TableColumn fx:id="colPatient" text="Patient" prefWidth="200" />
+                <TableColumn fx:id="colMotif" text="Motif" prefWidth="220" />
+                <TableColumn fx:id="colActions" text="Actions" prefWidth="240" />
+            </columns>
+        </TableView>
+    </children>
+</VBox>

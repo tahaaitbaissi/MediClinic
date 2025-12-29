@@ -90,18 +90,8 @@ public class ConsultationService {
      * Récupère toutes les consultations liées à un Dossier Médical.
      */
     public List<Consultation> getConsultationsByDossier(Long dossierId) {
-        DossierMedical dossier = dossierMedicalDAO.findById(dossierId);
-
-        if (dossier == null) {
-            return List.of(); // Retourne une liste vide si le dossier n'existe pas
-        }
-
-        // Accéder à la liste dans la même transaction que le chargement du dossier
-        // La liste est chargée car elle est dans la même session transactionnelle
-        List<Consultation> consultations = dossier.getHistoriqueConsultations();
-        
-        // S'assurer que la liste n'est pas null
-        return consultations != null ? consultations : List.of();
+        // Charger via DAO avec fetch pour éviter LazyInitializationException
+        return consultationDAO.findByDossierId(dossierId);
     }
 
     public Consultation findById(Long id) {

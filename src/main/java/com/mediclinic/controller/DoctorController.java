@@ -96,7 +96,7 @@ public class DoctorController implements Initializable {
 
         // Add actions column
         TableColumn<Medecin, Void> colActions = new TableColumn<>("Actions");
-        colActions.setPrefWidth(150);
+        colActions.setPrefWidth(350);
         colActions.setCellFactory(param ->
             new TableCell<Medecin, Void>() {
                 private final Button viewBtn = new Button("Détails");
@@ -104,9 +104,9 @@ public class DoctorController implements Initializable {
                 private final Button deleteBtn = new Button("Supprimer");
 
                 {
-                    viewBtn.getStyleClass().add("btn-primary");
-                    editBtn.getStyleClass().add("btn-warning");
-                    deleteBtn.getStyleClass().add("btn-danger");
+                    viewBtn.getStyleClass().addAll("btn-primary", "btn-actions");
+                    editBtn.getStyleClass().addAll("btn-warning", "btn-actions");
+                    deleteBtn.getStyleClass().addAll("btn-danger", "btn-actions");
 
                     viewBtn.setOnAction(event -> {
                         Medecin medecin = getTableView()

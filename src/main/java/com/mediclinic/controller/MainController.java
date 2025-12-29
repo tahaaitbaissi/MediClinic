@@ -12,7 +12,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class MainController {
@@ -21,7 +20,7 @@ public class MainController {
     private StackPane contentArea;
 
     @FXML
-    private Button dashboardBtn, patientsBtn, agendaBtn, doctorsBtn, billingBtn, qrScannerBtn, usersBtn;
+    private Button dashboardBtn, patientsBtn, agendaBtn, doctorsBtn, billingBtn, qrScannerBtn, usersBtn, consultationsBtn;
 
     @FXML
     private Label userInfoLabel;
@@ -135,6 +134,7 @@ public class MainController {
                     billingBtn.setManaged(true);
                     usersBtn.setVisible(true);
                     usersBtn.setManaged(true);
+                    if (consultationsBtn != null) { consultationsBtn.setVisible(true); consultationsBtn.setManaged(true); }
                     break;
                 case MEDECIN:
                     // Doctor sees only Dashboard and Agenda
@@ -148,6 +148,7 @@ public class MainController {
                     billingBtn.setManaged(false);
                     usersBtn.setVisible(false);
                     usersBtn.setManaged(false);
+                    if (consultationsBtn != null) { consultationsBtn.setVisible(true); consultationsBtn.setManaged(true); }
                     break;
                 case SEC:
                     // Secretary sees Dashboard, Patients, Agenda, Billing
@@ -161,6 +162,7 @@ public class MainController {
                     billingBtn.setManaged(true);
                     usersBtn.setVisible(false);
                     usersBtn.setManaged(false);
+                    if (consultationsBtn != null) { consultationsBtn.setVisible(false); consultationsBtn.setManaged(false); }
                     break;
             }
         } catch (Exception e) {
@@ -254,6 +256,13 @@ public class MainController {
         loadView("/fxml/user_view.fxml");
     }
 
+    @FXML
+    private void showConsultations() {
+        checkPermission("consultations");
+        setActiveButton(consultationsBtn);
+        loadView("/fxml/consultations_view.fxml");
+    }
+
     private void checkPermission(String page) {
         try {
             if (!UserSession.isAuthenticated()) {
@@ -289,7 +298,9 @@ public class MainController {
             agendaBtn,
             doctorsBtn,
             billingBtn,
+            qrScannerBtn,
             usersBtn,
+            consultationsBtn,
         };
         for (Button button : buttons) {
             if (button != null && button.isManaged()) {

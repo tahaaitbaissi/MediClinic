@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.mediclinic.controller.DossierController" spacing="10">
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15" />
+    </padding>
+    <children>
+        <HBox spacing="10">
+            <Label text="Dossier Médical" styleClass="title" />
+            <Label fx:id="patientNameLabel" />
+        </HBox>
+        <TitledPane text="Notes générales">
+            <content>
+                <TextArea fx:id="notesGeneralesArea" prefRowCount="3" wrapText="true" />
+            </content>
+        </TitledPane>
+        <Label text="Historique des consultations" />
+        <TableView fx:id="consultationTable">
+            <columns>
+                <TableColumn fx:id="colDate" text="Date" prefWidth="180" />
+                <TableColumn fx:id="colMotif" text="Motif" prefWidth="220" />
+                <TableColumn fx:id="colActions" text="Actions" prefWidth="220" />
+            </columns>
+        </TableView>
+        <HBox spacing="10">
+            <Button text="Fermer" onAction="#handleClose" />
+        </HBox>
+    </children>
+</VBox>

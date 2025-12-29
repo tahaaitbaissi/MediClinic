@@ -7,7 +7,6 @@ import com.mediclinic.service.PatientService;
 import com.mediclinic.util.PermissionChecker;
 import com.mediclinic.util.UserSession;
 import java.net.URL;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
@@ -19,7 +18,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+ 
 
 public class PatientController implements Initializable {
 
@@ -138,8 +137,6 @@ public class PatientController implements Initializable {
 
     private void setupRoleBasedUI() {
         try {
-            Role role = UserSession.getInstance().getUser().getRole();
-
             // Hide/show "Add Patient" button based on role
             if (addPatientBtn != null) {
                 boolean canCreate = patientService.canCreatePatient();
@@ -165,16 +162,19 @@ public class PatientController implements Initializable {
         );
 
         TableColumn<Patient, Void> colActions = new TableColumn<>("Actions");
+        colActions.setPrefWidth(280);
         colActions.setCellFactory(param ->
             new TableCell<Patient, Void>() {
                 private final Button editBtn = new Button("Modifier");
                 private final Button deleteBtn = new Button("Supprimer");
                 private final Button detailsBtn = new Button("Détails");
+                private final Button dossierBtn = new Button("Dossier");
 
                 {
-                    editBtn.getStyleClass().add("btn-warning");
-                    deleteBtn.getStyleClass().add("btn-danger");
-                    detailsBtn.getStyleClass().add("btn-primary");
+                    editBtn.getStyleClass().addAll("btn-warning", "btn-actions");
+                    deleteBtn.getStyleClass().addAll("btn-danger", "btn-actions");
+                    detailsBtn.getStyleClass().addAll("btn-primary", "btn-actions");
+                    dossierBtn.getStyleClass().addAll("btn-info", "btn-actions");
 
                     editBtn.setOnAction(event -> {
                         Patient patient = getTableView()
@@ -196,6 +196,10 @@ public class PatientController implements Initializable {
                             .get(getIndex());
                         showPatientDetails(patient);
                     });
+                    dossierBtn.setOnAction(event -> {
+                        Patient patient = getTableView().getItems().get(getIndex());
+                        openDossierForPatient(patient);
+                    });
                 }
 
                 @Override
@@ -209,6 +213,10 @@ public class PatientController implements Initializable {
                             Role role = session.getUser().getRole();
                             HBox buttons = new HBox(5);
                             buttons.getChildren().add(detailsBtn); // View button always visible
+                            // Doctors can access dossier
+                            if (role == Role.MEDECIN || role == Role.ADMIN) {
+                                buttons.getChildren().add(dossierBtn);
+                            }
 
                             // Hide edit and delete buttons for MEDECIN (read-only)
                             if (role == Role.ADMIN || role == Role.SEC) {
@@ -317,9 +325,6 @@ public class PatientController implements Initializable {
                     }
 
                     // Count new patients this month
-                    LocalDate firstDayOfMonth = LocalDate.now().withDayOfMonth(
-                        1
-                    );
                     long newThisMonth = allPatients
                         .stream()
                         .filter(p -> p.getDateNaissance() != null) // Placeholder logic
@@ -783,6 +788,21 @@ public class PatientController implements Initializable {
                 patient.getDateNaissance(),
             Alert.AlertType.INFORMATION
         );
+    }
+
+    private void openDossierForPatient(Patient patient) {
+        try {
+            com.mediclinic.dao.DossierMedicalDAO dossierDAO = new com.mediclinic.dao.DossierMedicalDAO();
+            com.mediclinic.model.DossierMedical dossier = dossierDAO.findByPatientId(patient.getId());
+            if (dossier != null) {
+                // Le dossier retourné par findByPatientId fetch déjà le patient
+                com.mediclinic.controller.DossierController.openForDossier(dossier);
+            } else {
+                showAlert("Info", "Aucun dossier médical pour ce patient.", Alert.AlertType.INFORMATION);
+            }
+        } catch (Exception e) {
+            showAlert("Erreur", "Impossible d'ouvrir le dossier: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     @FXML

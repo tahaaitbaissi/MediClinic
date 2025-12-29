@@ -421,6 +421,23 @@
     -fx-alignment: center-left;
 }
 
+/* Boutons de taille standard (grand par défaut) */
+.btn-actions {
+    -fx-padding: 16px 24px;
+    -fx-font-size: 14px;
+    -fx-min-width: 110px;
+    -fx-text-alignment: center;
+    -fx-wrap-text: true;
+}
+
+/* Boutons de taille réduite (pour les colonnes dynamiques/flexibles) */
+.btn-actions-compact {
+    -fx-padding: 6px 10px;
+    -fx-font-size: 11px;
+    -fx-min-width: 50px;
+    -fx-text-alignment: center;
+}
+
 /* Supprimer les bordures par défaut */
 .table-view .filler {
     -fx-background-color: white;

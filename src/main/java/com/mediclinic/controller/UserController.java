@@ -60,16 +60,16 @@ public class UserController implements Initializable {
 
         // Add actions column
         TableColumn<User, Void> colActions = new TableColumn<>("Actions");
-        colActions.setPrefWidth(150);
+        colActions.setPrefWidth(380);
         colActions.setCellFactory(param -> new TableCell<User, Void>() {
             private final Button editBtn = new Button("Modifier");
             private final Button passwordBtn = new Button("Mot de passe");
             private final Button deleteBtn = new Button("Supprimer");
 
             {
-                editBtn.getStyleClass().add("btn-warning");
-                passwordBtn.getStyleClass().add("btn-primary");
-                deleteBtn.getStyleClass().add("btn-danger");
+                editBtn.getStyleClass().addAll("btn-warning", "btn-actions");
+                passwordBtn.getStyleClass().addAll("btn-primary", "btn-actions");
+                deleteBtn.getStyleClass().addAll("btn-danger", "btn-actions");
 
                 editBtn.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());

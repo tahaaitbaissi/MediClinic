@@ -148,7 +148,7 @@ public class BillingController implements Initializable {
 
         // Add actions column
         TableColumn<Facture, Void> colActions = new TableColumn<>("Actions");
-        colActions.setPrefWidth(280);
+        colActions.setPrefWidth(420);
         colActions.setCellFactory(param ->
             new TableCell<Facture, Void>() {
                 private final Button viewBtn = new Button("Détails");
@@ -157,10 +157,10 @@ public class BillingController implements Initializable {
                 private final Button emailBtn = new Button("📧 Email");
 
                 {
-                    viewBtn.getStyleClass().add("btn-primary");
-                    payBtn.getStyleClass().add("btn-success");
-                    printBtn.getStyleClass().add("btn-warning");
-                    emailBtn.getStyleClass().add("btn-primary");
+                    viewBtn.getStyleClass().addAll("btn-primary", "btn-actions");
+                    payBtn.getStyleClass().addAll("btn-success", "btn-actions");
+                    printBtn.getStyleClass().addAll("btn-warning", "btn-actions");
+                    emailBtn.getStyleClass().addAll("btn-primary", "btn-actions");
 
                     viewBtn.setOnAction(event -> {
                         Facture facture = getTableView()

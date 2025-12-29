@@ -69,10 +69,10 @@ public class PermissionChecker {
 
         switch (role) {
             case ADMIN:
-                pages.addAll(Arrays.asList("dashboard", "patients", "agenda", "doctors", "billing", "users"));
+                pages.addAll(Arrays.asList("dashboard", "patients", "agenda", "doctors", "billing", "users", "consultations", "dossiers"));
                 break;
             case MEDECIN:
-                pages.addAll(Arrays.asList("dashboard", "agenda", "patients")); // read-only for patients
+                pages.addAll(Arrays.asList("dashboard", "agenda", "patients", "consultations", "dossiers")); // read-only for patients
                 break;
             case SEC:
                 pages.addAll(Arrays.asList("dashboard", "patients", "agenda", "billing"));

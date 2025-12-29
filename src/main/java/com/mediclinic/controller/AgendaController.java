@@ -196,8 +196,6 @@ public class AgendaController implements Initializable {
 
     private void setupRoleBasedUI() {
         try {
-            Role role = UserSession.getInstance().getUser().getRole();
-
             // Hide "New Appointment" button for MEDECIN
             if (newAppointmentBtn != null) {
                 boolean canCreate = rendezVousService.canCreateAppointment();
@@ -253,20 +251,23 @@ public class AgendaController implements Initializable {
 
         // Add actions column
         TableColumn<RendezVous, Void> colActions = new TableColumn<>("Actions");
+        colActions.setPrefWidth(450);
         colActions.setCellFactory(param ->
             new TableCell<RendezVous, Void>() {
                 private final Button viewBtn = new Button("Détails");
                 private final Button confirmBtn = new Button("Confirmer");
                 private final Button completeBtn = new Button("Terminer");
                 private final Button cancelBtn = new Button("Annuler");
-                private final Button reminderBtn = new Button("📧 Rappel");
+                private final Button reminderBtn = new Button("Rappel");
+                private final Button consultBtn = new Button("Consultation");
 
                 {
-                    viewBtn.getStyleClass().add("btn-primary");
-                    confirmBtn.getStyleClass().add("btn-success");
-                    completeBtn.getStyleClass().add("btn-info");
-                    cancelBtn.getStyleClass().add("btn-danger");
-                    reminderBtn.getStyleClass().add("btn-warning");
+                    viewBtn.getStyleClass().addAll("btn-primary", "btn-actions");
+                    confirmBtn.getStyleClass().addAll("btn-success", "btn-actions");
+                    completeBtn.getStyleClass().addAll("btn-success", "btn-actions");
+                    cancelBtn.getStyleClass().addAll("btn-danger", "btn-actions");
+                    reminderBtn.getStyleClass().addAll("btn-warning", "btn-actions");
+                    consultBtn.getStyleClass().addAll("btn-info", "btn-actions");
 
                     viewBtn.setOnAction(event -> {
                         RendezVous rdv = getTableView()
@@ -301,6 +302,10 @@ public class AgendaController implements Initializable {
                             .getItems()
                             .get(getIndex());
                         sendManualReminder(rdv);
+                    });
+                    consultBtn.setOnAction(event -> {
+                        RendezVous rdv = getTableView().getItems().get(getIndex());
+                        openConsultationEditorForRdv(rdv);
                     });
                 }
 
@@ -352,6 +357,8 @@ public class AgendaController implements Initializable {
                                         reminderBtn,
                                         cancelBtn
                                     );
+                            } else if (status == RendezVousStatus.TERMINE) {
+                                buttons.getChildren().add(consultBtn);
                             }
                         }
                         // Pour TERMINE et ANNULE, ou si l'utilisateur ne peut pas modifier, seul le bouton voir est affiché
@@ -369,10 +376,9 @@ public class AgendaController implements Initializable {
         try {
             // For doctors and secretaries, hide the doctor filter
             // (they only see appointments for their associated doctor)
-            Role role = UserSession.getInstance().getUser().getRole();
             if (
                 UserSession.isAuthenticated() &&
-                (role == Role.MEDECIN || role == Role.SEC)
+                (UserSession.getInstance().getUser().getRole() == Role.MEDECIN || UserSession.getInstance().getUser().getRole() == Role.SEC)
             ) {
                 doctorCombo.setVisible(false);
                 doctorCombo.setManaged(false);
@@ -1222,6 +1228,12 @@ public class AgendaController implements Initializable {
                             "Rendez-vous terminé et consultation créée!",
                             Alert.AlertType.INFORMATION
                         );
+                        // Optionally open the consultation editor directly for doctors
+                        try {
+                            if (UserSession.getInstance().getUser().getRole() == Role.MEDECIN) {
+                                openConsultationEditorForRdv(rdv);
+                            }
+                        } catch (Exception ignore) {}
                     } catch (SecurityException e) {
                         showAlert(
                             "Accès refusé",
@@ -1237,6 +1249,22 @@ public class AgendaController implements Initializable {
                     }
                 }
             });
+    }
+
+    private void openConsultationEditorForRdv(RendezVous rdv) {
+        try {
+            // Trouver la consultation par RDV avec les dépendances nécessaires
+            com.mediclinic.dao.ConsultationDAO consultationDAO = new com.mediclinic.dao.ConsultationDAO();
+            com.mediclinic.model.Consultation consultation = consultationDAO.findByRendezVousId(rdv.getId());
+            if (consultation != null) {
+                // La requête JOIN FETCH charge déjà rendezVous et patient
+                com.mediclinic.controller.ConsultationEditorController.openEditor(consultation);
+            } else {
+                showAlert("Info", "Aucune consultation trouvée pour ce rendez-vous.", Alert.AlertType.INFORMATION);
+            }
+        } catch (Exception e) {
+            showAlert("Erreur", "Impossible d'ouvrir la consultation: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     @FXML
