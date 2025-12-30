@@ -73,6 +73,12 @@ public class ConsultationsController implements Initializable {
                 Consultation c = getTableView().getItems().get(getIndex());
                 try {
                     ConsultationEditorController.openEditor(c);
+                    // Recharger la liste après la fermeture de l'éditeur
+                    loadConsultations();
+                    // Réappliquer le filtre courant si présent
+                    if (searchField != null && searchField.getText() != null && !searchField.getText().isBlank()) {
+                        filterConsultations(searchField.getText());
+                    }
                 } catch (Exception ex) {
                     new Alert(Alert.AlertType.ERROR, "Erreur: " + ex.getMessage()).showAndWait();
                 }

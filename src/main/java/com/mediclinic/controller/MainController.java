@@ -20,7 +20,12 @@ public class MainController {
     private StackPane contentArea;
 
     @FXML
-    private Button dashboardBtn, patientsBtn, agendaBtn, doctorsBtn, billingBtn, qrScannerBtn, usersBtn, consultationsBtn;
+    private Button dashboardBtn, patientsBtn, agendaBtn, doctorsBtn, billingBtn, qrScannerBtn, usersBtn, consultationsBtn, waitingRoomBtn;
+    @FXML
+    private void showWaitingRoom() {
+        setActiveButton(waitingRoomBtn);
+        loadView("/fxml/waiting_room_view.fxml");
+    }
 
     @FXML
     private Label userInfoLabel;

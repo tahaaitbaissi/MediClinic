@@ -541,6 +541,86 @@ public class PdfService {
         System.out.println("Financial report PDF generated at: " + destPath);
     }
 
+    public void generateDossierMedicalPdf(
+        DossierMedical dossier,
+        List<Consultation> consultations,
+        String destPath
+    ) throws FileNotFoundException {
+        PdfWriter writer = new PdfWriter(destPath);
+        PdfDocument pdf = new PdfDocument(writer);
+        Document document = new Document(pdf);
+
+        String patientName = dossier.getPatient() != null ? dossier.getPatient().getNomComplet() : "";
+        addHeader(document, "DOSSIER MEDICAL", patientName);
+
+        document.add(new Paragraph("\n"));
+
+        Table infoTable = new Table(2);
+        infoTable.setWidth(UnitValue.createPercentValue(100));
+
+        addInfoCell(infoTable, "ID Dossier:", dossier.getId() != null ? String.valueOf(dossier.getId()) : "");
+        addInfoCell(infoTable, "Patient:", patientName);
+        addInfoCell(infoTable, "Date de création:", dossier.getDateCreation() != null ? dossier.getDateCreation().format(DATE_FORMATTER) : "");
+
+        document.add(infoTable);
+        document.add(new Paragraph("\n"));
+
+        Paragraph notesTitle = new Paragraph("Notes générales")
+            .setFontSize(14)
+            .setBold()
+            .setFontColor(SECONDARY_COLOR);
+        document.add(notesTitle);
+        document.add(new Paragraph("\n").setMarginTop(-5));
+
+        String notes = dossier.getNotesGenerales() != null ? dossier.getNotesGenerales() : "Aucune note";
+        Table notesTable = new Table(1);
+        notesTable.setWidth(UnitValue.createPercentValue(100));
+        Cell notesCell = new Cell()
+            .add(new Paragraph(notes).setFontSize(10))
+            .setPadding(10)
+            .setBackgroundColor(LIGHT_GRAY)
+            .setBorder(new SolidBorder(LIGHT_GRAY, 1));
+        notesTable.addCell(notesCell);
+        document.add(notesTable);
+
+        document.add(new Paragraph("\n"));
+
+        if (consultations != null && !consultations.isEmpty()) {
+            Paragraph histTitle = new Paragraph("Historique des consultations")
+                .setFontSize(14)
+                .setBold()
+                .setFontColor(SECONDARY_COLOR);
+            document.add(histTitle);
+            document.add(new Paragraph("\n").setMarginTop(-5));
+
+            Table table = new Table(new float[] { 2, 2, 3, 3 });
+            table.setWidth(UnitValue.createPercentValue(100));
+
+            addTableHeader(table, "Date");
+            addTableHeader(table, "Motif");
+            addTableHeader(table, "Observations");
+            addTableHeader(table, "Diagnostic");
+
+            for (Consultation c : consultations) {
+                RendezVous rdv = c.getRendezVous();
+                String date = rdv != null && rdv.getDateHeureDebut() != null ? rdv.getDateHeureDebut().format(DATETIME_FORMATTER) : "";
+                String motif = rdv != null && rdv.getMotif() != null ? rdv.getMotif() : "";
+                String obs = c.getObservations() != null ? c.getObservations() : "";
+                String diag = c.getDiagnostic() != null ? c.getDiagnostic() : "";
+
+                addTableCell(table, date, true);
+                addTableCell(table, motif, false);
+                addTableCell(table, obs, false);
+                addTableCell(table, diag, false);
+            }
+
+            document.add(table);
+        }
+
+        addFooter(document);
+        document.close();
+    }
+
     private void addHeader(Document document, String title, String subtitle) {
         Table headerTable = new Table(1);
         headerTable.setWidth(UnitValue.createPercentValue(100));

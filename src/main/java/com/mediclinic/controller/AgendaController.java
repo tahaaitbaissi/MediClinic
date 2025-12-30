@@ -358,7 +358,18 @@ public class AgendaController implements Initializable {
                                         cancelBtn
                                     );
                             } else if (status == RendezVousStatus.TERMINE) {
-                                buttons.getChildren().add(consultBtn);
+                                // Do not show the "Consultation" action to secretaries (Role.SEC)
+                                try {
+                                    if (
+                                        !UserSession.isAuthenticated() ||
+                                        UserSession.getInstance().getUser().getRole() != Role.SEC
+                                    ) {
+                                        buttons.getChildren().add(consultBtn);
+                                    }
+                                } catch (Exception e) {
+                                    // If we cannot determine the role, fall back to showing the button
+                                    buttons.getChildren().add(consultBtn);
+                                }
                             }
                         }
                         // Pour TERMINE et ANNULE, ou si l'utilisateur ne peut pas modifier, seul le bouton voir est affiché
@@ -1315,11 +1326,16 @@ public class AgendaController implements Initializable {
 
     @FXML
     private void handleWaitingList() {
-        showAlert(
-            "Liste d'attente",
-            "Affichage de la liste d'attente (à implémenter)",
-            Alert.AlertType.INFORMATION
-        );
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/waiting_room_view.fxml"));
+            javafx.scene.Parent view = loader.load();
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("Liste d'attente");
+            stage.setScene(new javafx.scene.Scene(view, 700, 600));
+            stage.show();
+        } catch (Exception e) {
+            showAlert("Erreur", "Impossible d'afficher la liste d'attente: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     @FXML

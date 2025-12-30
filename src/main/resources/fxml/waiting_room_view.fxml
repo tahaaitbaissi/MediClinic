@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.mediclinic.controller.WaitListController" styleClass="waiting-room-bg"
+    stylesheets="@../css/waiting_room_tv.css">
+
+    <!-- Top title -->
+    <top>
+        <VBox alignment="CENTER" spacing="6" styleClass="top-bar">
+            <Label text="Salle d'attente" styleClass="page-title" />
+            <Label text="Affichage public - Prochains patients" styleClass="page-subtitle" />
+        </VBox>
+    </top>
+
+    <!-- Main content: left = current reservation, right = waiting list -->
+    <center>
+        <HBox spacing="28" alignment="CENTER" style="-fx-padding: 30 40 40 40;">
+            <!-- Current reservation card -->
+            <VBox styleClass="card current-card" alignment="CENTER" spacing="18" prefWidth="620">
+                <Label text="ACTUELLEMENT" styleClass="current-title" />
+                <HBox alignment="CENTER" spacing="14">
+                    <Region styleClass="status-indicator" />
+                    <Label fx:id="currentReservationLabel" styleClass="current-reservation" wrapText="true" />
+                </HBox>
+            </VBox>
+
+            <!-- Waiting list card -->
+            <VBox styleClass="card list-card" spacing="12" alignment="TOP_CENTER" prefWidth="720">
+                <Label text="Prochains Patients" styleClass="list-title" />
+                <TableView fx:id="reservationTable" prefHeight="480" styleClass="table-view table-card">
+                    <columns>
+                        <TableColumn fx:id="colPatient" text="Patient" prefWidth="300" />
+                        <TableColumn fx:id="colMedecin" text="Médecin" prefWidth="260" />
+                        <TableColumn fx:id="colHeure" text="Heure" prefWidth="160" />
+                    </columns>
+                    <placeholder>
+                        <Label text="Aucun patient en attente" />
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </HBox>
+    </center>
+
+</BorderPane>

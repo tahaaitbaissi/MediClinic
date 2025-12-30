@@ -1,9 +1,11 @@
 package com.mediclinic.controller;
 
+import com.mediclinic.dao.DossierMedicalDAO;
 import com.mediclinic.model.Consultation;
 import com.mediclinic.model.DossierMedical;
 import com.mediclinic.model.RendezVous;
 import com.mediclinic.service.ConsultationService;
+import com.mediclinic.service.PdfService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -12,10 +14,12 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.FileChooser;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ArrayList;
 
 public class DossierController {
 
@@ -33,6 +37,8 @@ public class DossierController {
     private TableColumn<Consultation, Void> colActions;
 
     private final ConsultationService consultationService = new ConsultationService();
+    private final DossierMedicalDAO dossierDAO = new DossierMedicalDAO();
+    private final PdfService pdfService = new PdfService();
     private DossierMedical dossier;
 
     public void initData(DossierMedical dossier) {
@@ -99,6 +105,51 @@ public class DossierController {
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Erreur d'ouverture: " + e.getMessage());
             alert.showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleSaveNotes() {
+        if (dossier == null) {
+            new Alert(Alert.AlertType.WARNING, "Aucun dossier chargé.").showAndWait();
+            return;
+        }
+        try {
+            dossier.setNotesGenerales(notesGeneralesArea.getText());
+            dossier = dossierDAO.save(dossier);
+            new Alert(Alert.AlertType.INFORMATION, "Notes générales enregistrées.").showAndWait();
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR, "Erreur lors de l'enregistrement des notes: " + ex.getMessage()).showAndWait();
+        }
+    }
+
+    @FXML
+    private void handleExportPdf() {
+        if (dossier == null) {
+            new Alert(Alert.AlertType.WARNING, "Aucun dossier chargé.").showAndWait();
+            return;
+        }
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Exporter Dossier en PDF");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Fichiers PDF", "*.pdf"));
+            String patientName = dossier.getPatient() != null ? dossier.getPatient().getNomComplet().replaceAll("[\\\\/:*?\"<>|]", "_") : "patient";
+            fileChooser.setInitialFileName("dossier_" + patientName + "_" + (dossier.getId() != null ? dossier.getId() : "")+ ".pdf");
+            Stage stage = (Stage) consultationTable.getScene().getWindow();
+            java.io.File file = fileChooser.showSaveDialog(stage);
+            if (file == null) return;
+
+            List<Consultation> consultations;
+            if (consultationTable.getItems() != null && !consultationTable.getItems().isEmpty()) {
+                consultations = new ArrayList<>(consultationTable.getItems());
+            } else {
+                consultations = consultationService.getConsultationsByDossier(dossier.getId());
+            }
+
+            pdfService.generateDossierMedicalPdf(dossier, consultations, file.getAbsolutePath());
+            new Alert(Alert.AlertType.INFORMATION, "PDF exporté: " + file.getAbsolutePath()).showAndWait();
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR, "Erreur d'export PDF: " + ex.getMessage()).showAndWait();
         }
     }
 

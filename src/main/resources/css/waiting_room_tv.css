@@ -1,0 +1,103 @@
+/* Light mode waiting room - clean, clinical */
+
+.waiting-room-bg {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #f8fafc 0%, #eef2f7 100%);
+}
+
+/* Top header */
+.top-bar {
+    -fx-padding: 18 0 10 0;
+}
+.page-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #0b2545;
+}
+.page-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #475569;
+}
+
+/* Card base */
+.card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(11,37,69,0.06);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(11,37,69,0.06), 10, 0, 0, 6);
+}
+
+/* Current reservation */
+.current-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #0b2545;
+}
+.current-reservation {
+    -fx-font-size: 44px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #07203b;
+}
+.status-indicator {
+    -fx-min-width: 14px;
+    -fx-min-height: 14px;
+    -fx-background-color: #06b6d4;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+/* List title */
+.list-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #07203b;
+    -fx-padding: 14 0 8 0;
+}
+
+/* Table styling - light */
+.table-view {
+    -fx-font-size: 16px;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #f1f5f9 0%, #e2e8f0 100%);
+    -fx-background-radius: 8 8 0 0;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #0b2545;
+    -fx-padding: 12 8;
+}
+
+.table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #0b2545;
+    -fx-padding: 10 8;
+}
+
+.table-row-cell:even {
+    -fx-background-color: #fbfdff;
+}
+.table-row-cell:odd {
+    -fx-background-color: #ffffff;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #f1f5f9;
+}
+
+.table-row-cell:filled:selected, .table-row-cell:filled:selected:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #bae6fd 0%, #bfdbfe 100%);
+    -fx-text-fill: #07203b;
+    -fx-font-weight: 600;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 16px;
+}

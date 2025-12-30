@@ -112,6 +112,7 @@
                     onAction="#showUsers"
                     fx:id="usersBtn"
                 />
+                <!-- Salle d'attente retirée du menu latéral -->
             </HBox>
         </VBox>
     </top>

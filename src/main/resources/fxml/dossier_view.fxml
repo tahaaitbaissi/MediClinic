@@ -27,6 +27,8 @@
             </columns>
         </TableView>
         <HBox spacing="10">
+            <Button text="Enregistrer les notes" onAction="#handleSaveNotes" />
+            <Button text="Exporter PDF" onAction="#handleExportPdf" />
             <Button text="Fermer" onAction="#handleClose" />
         </HBox>
     </children>

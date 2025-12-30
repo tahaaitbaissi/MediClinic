@@ -15,6 +15,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class RendezVousService {
+    /**
+     * Retourne la liste d'attente (rendez-vous à venir, triés par heure, statut PLANIFIE ou CONFIRME)
+     */
+    public List<RendezVous> getWaitingRoomReservations() {
+        List<RendezVous> all = rdvDAO.findAllWithDetails();
+        return all.stream()
+            .filter(rdv -> rdv.getStatus() == RendezVousStatus.PLANIFIE || rdv.getStatus() == RendezVousStatus.CONFIRME)
+            .filter(rdv -> rdv.getDateHeureDebut() != null && rdv.getDateHeureDebut().isAfter(LocalDateTime.now().minusMinutes(10)))
+            .sorted((a, b) -> a.getDateHeureDebut().compareTo(b.getDateHeureDebut()))
+            .toList();
+    }
 
     private final RendezVousDAO rdvDAO;
     private final MedecinDAO medecinDAO;
